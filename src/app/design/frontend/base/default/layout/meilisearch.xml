@@ -1,36 +1,37 @@
 <?xml version="1.0"?>
 <layout>
-    <!-- Base Meilisearch configuration and assets -->
     <meilisearch_search_handle>
         <reference name="head">
-            <!-- Configuration template with window.meilisearchConfig -->
             <block type="core/template" before="js" template="meilisearch/internals/configuration.phtml" name="meilisearch-configuration"/>
 
-            <!-- Vanilla CSS - No jQuery dependencies -->
-            <action method="addCss"><stylesheet>meilisearch/autocomplete-vanilla.css</stylesheet></action>
+            <action method="addCss"><stylesheet>meilisearch/meilisearch.css</stylesheet></action>
+            <action method="addCss"><stylesheet>meilisearch/autocomplete.css</stylesheet></action>
+
+            <action method="addJs"><script>meilisearch/meilisearch-client.js</script></action>
+            <action method="addJs"><script>meilisearch/meilisearch-search.js</script></action>
+        </reference>
+
+        <reference name="content">
+            <block type="core/template" before="content" template="meilisearch/internals/beforecontent.phtml" name="meilisearch-beforecontent"/>
         </reference>
     </meilisearch_search_handle>
 
-    <!-- Search box replacement with Meilisearch template -->
     <meilisearch_search_handle_with_topsearch>
         <reference name="top.search">
             <action method="setTemplate"><template>meilisearch/autocomplete.phtml</template></action>
         </reference>
     </meilisearch_search_handle_with_topsearch>
 
-    <!-- Autocomplete JavaScript - Pure Vanilla JS -->
     <meilisearch_search_handle_autocomplete>
         <reference name="head">
-            <action method="addJs"><script>meilisearch/autocomplete-vanilla.js</script></action>
         </reference>
     </meilisearch_search_handle_autocomplete>
 
-    <!-- Instant search (disabled for now - can be added later if needed) -->
     <meilisearch_search_handle_instantsearch>
-        <!-- Instant search can be added here later with vanilla JS -->
+        <reference name="head">
+        </reference>
     </meilisearch_search_handle_instantsearch>
 
-    <!-- Backend rendering prevention (for instant search pages) -->
     <meilisearch_search_handle_prevent_backend_rendering>
         <reference name="left_first">
             <action method="unsetChild"><name>catalog.leftnav</name></action>
@@ -52,5 +53,4 @@
             <action method="unsetChild"><name>right.poll</name></action>
         </reference>
     </meilisearch_search_handle_prevent_backend_rendering>
-
 </layout>

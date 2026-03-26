@@ -1,205 +1,329 @@
 /**
- * Meilisearch Autocomplete Styles
+ * Meilisearch Autocomplete — Clean Design
  */
 
 .meilisearch-autocomplete {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-top: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    max-height: 500px;
-    overflow-y: auto;
+    background: transparent;
+    border: none;
+    box-shadow: none;
     z-index: 9999;
 }
 
 .meilisearch-autocomplete-wrapper {
-    padding: 0;
+    display: flex;
+    gap: 0;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
 }
 
-/* Loading state */
-.meilisearch-autocomplete-loading {
+/* Left column */
+.meilisearch-autocomplete-left-column {
+    width: 280px;
+    flex-shrink: 0;
+    border-right: 1px solid #f0f0f0;
     padding: 20px;
-    text-align: center;
-    color: #666;
+    overflow-y: auto;
+    min-height: 0;
+    max-height: 600px;
+    background: #fafafa;
 }
 
-/* Error state */
-.meilisearch-autocomplete-error {
+/* Right column */
+.meilisearch-autocomplete-right-column {
+    flex: 1;
     padding: 20px;
-    text-align: center;
-    color: #d00;
+    overflow-y: auto;
+    min-height: 0;
+    max-height: 600px;
+}
+
+/* Section titles */
+.meilisearch-autocomplete-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 /* Sections */
 .meilisearch-autocomplete-section {
-    border-bottom: 1px solid #f0f0f0;
-    padding: 10px 0;
+    border: none;
+    padding: 0;
 }
 
-.meilisearch-autocomplete-section:last-child {
-    border-bottom: none;
+.meilisearch-autocomplete-section + .meilisearch-autocomplete-section {
+    margin-top: 20px;
 }
 
-.meilisearch-autocomplete-section-title {
-    padding: 5px 15px;
-    font-weight: bold;
-    font-size: 12px;
-    text-transform: uppercase;
-    color: #666;
-    background: #f8f8f8;
+/* Sidebar hits */
+.meilisearch-autocomplete-left-column .meilisearch-autocomplete-hit a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #374151;
+    font-size: 14px;
+    transition: background 0.15s;
 }
 
-/* Hits */
-.meilisearch-autocomplete-hit {
+.meilisearch-autocomplete-left-column .meilisearch-autocomplete-hit a:hover {
+    background: #e5e7eb;
+}
+
+.meilisearch-autocomplete-left-column .badge {
+    background: #f3f4f6;
+    color: #6b7280;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+/* Product grid */
+.meilisearch-autocomplete-section-products .meilisearch-autocomplete-hits {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+}
+
+/* Product card */
+.meilisearch-autocomplete-section-products .meilisearch-autocomplete-hit {
     position: relative;
 }
 
-.meilisearch-autocomplete-hit a {
-    display: block;
-    padding: 10px 15px;
-    text-decoration: none;
-    color: #333;
-    transition: background-color 0.2s;
-}
-
-.meilisearch-autocomplete-hit a:hover,
-.meilisearch-autocomplete-hit.active a {
-    background-color: #f5f5f5;
-}
-
-/* Product hits */
 .meilisearch-autocomplete-product {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    padding: 8px;
+    border-radius: 10px;
+    transition: all 0.2s;
+    height: 100%;
+}
+
+.meilisearch-autocomplete-product:hover {
+    background: #f9fafb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .meilisearch-autocomplete-product-image {
-    width: 40px;
-    height: 40px;
-    margin-right: 10px;
-    flex-shrink: 0;
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9fafb;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
 }
 
 .meilisearch-autocomplete-product-image img {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    mix-blend-mode: multiply;
 }
 
 .meilisearch-autocomplete-product-details {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     min-width: 0;
+    text-align: center;
 }
 
 .meilisearch-autocomplete-product-name {
-    font-size: 14px;
-    line-height: 1.3;
-    margin-bottom: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.35;
+    color: #1f2937;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .meilisearch-autocomplete-product-price {
-    font-size: 13px;
-    font-weight: bold;
-    color: #c00;
-}
-
-/* Category hits */
-.meilisearch-autocomplete-category {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.meilisearch-autocomplete-category-name {
     font-size: 14px;
-    flex: 1;
+    font-weight: 700;
+    color: #059669;
+    margin-top: auto;
 }
 
-.meilisearch-autocomplete-category-count {
-    font-size: 12px;
-    color: #666;
-    margin-left: 10px;
+/* Page hits in sidebar */
+.meilisearch-autocomplete-left-column .meilisearch-autocomplete-section-pages .meilisearch-autocomplete-hit a {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
 }
 
-/* Page hits */
-.meilisearch-autocomplete-page-name {
+.meilisearch-autocomplete-left-column .page-title {
     font-size: 14px;
     font-weight: 500;
-    margin-bottom: 3px;
+    color: #374151;
 }
 
-.meilisearch-autocomplete-page-content {
+.meilisearch-autocomplete-left-column .page-snippet {
     font-size: 12px;
-    color: #666;
-    line-height: 1.4;
-    max-height: 2.8em;
+    color: #9ca3af;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
+    line-height: 1.4;
 }
 
-/* Suggestion hits */
-.meilisearch-autocomplete-suggestion {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.meilisearch-autocomplete-suggestion-query {
-    font-size: 14px;
-    flex: 1;
-}
-
-.meilisearch-autocomplete-suggestion-count {
-    font-size: 12px;
-    color: #666;
-    margin-left: 10px;
+/* Highlight */
+.meilisearch-autocomplete em {
+    font-style: normal;
+    font-weight: 700;
+    color: #111827;
 }
 
 /* Footer */
 .meilisearch-autocomplete-footer {
-    padding: 10px 15px;
-    background: #f8f8f8;
-    border-top: 1px solid #e0e0e0;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-top: none;
+    padding: 14px 20px;
     text-align: center;
+    border-radius: 0;
 }
 
 .meilisearch-autocomplete-footer a {
-    color: #0066cc;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #059669;
     text-decoration: none;
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: color 0.15s;
 }
 
 .meilisearch-autocomplete-footer a:hover {
-    text-decoration: underline;
+    color: #047857;
 }
 
-/* Highlighting */
-.meilisearch-autocomplete em {
-    font-style: normal;
-    font-weight: bold;
-    color: #000;
-    background-color: #ffeb3b;
-    padding: 0 2px;
+.meilisearch-autocomplete-footer a::after {
+    content: '\2192';
 }
 
-/* Mobile styles */
+/* Loading / Error */
+.meilisearch-autocomplete-loading,
+.meilisearch-autocomplete-error {
+    padding: 40px;
+    text-align: center;
+    color: #9ca3af;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Active keyboard nav */
+.meilisearch-autocomplete-hit.active > a {
+    background: #e5e7eb;
+    border-radius: 8px;
+}
+
+/* Mobile */
 @media (max-width: 768px) {
     .meilisearch-autocomplete {
         position: fixed !important;
         left: 0 !important;
         right: 0 !important;
         width: 100% !important;
-        max-height: 60vh;
+        max-width: 100%;
+        transform: none !important;
+        top: 60px !important;
     }
-    
-    .meilisearch-autocomplete-product-image {
-        width: 35px;
-        height: 35px;
+
+    .meilisearch-autocomplete-wrapper {
+        flex-direction: column;
+        border-radius: 0;
+        max-height: calc(100vh - 120px);
+        min-height: 0;
+        overflow-y: auto;
     }
-    
-    .meilisearch-autocomplete-hit a {
-        padding: 12px 10px;
+
+    .meilisearch-autocomplete-left-column {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #f0f0f0;
+        min-height: 0;
+        max-height: none;
+        padding: 12px;
     }
+
+    .meilisearch-autocomplete-right-column {
+        min-height: 0;
+        max-height: none;
+        padding: 12px;
+    }
+
+    .meilisearch-autocomplete-section-products .meilisearch-autocomplete-hits {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .meilisearch-autocomplete-footer {
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .meilisearch-autocomplete-section-products .meilisearch-autocomplete-hits {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Search modal input — match dropdown style */
+#search_modal .modal-box {
+    border-radius: 0;
+    padding: 12px 16px;
+    border: none;
+    box-shadow: none;
+    background: #fff;
+}
+
+#search_modal .input {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    outline: none;
+    font-size: 16px;
+}
+
+#search_modal .input:focus {
+    border-color: #d1d5db;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.04);
+    outline: none;
+}
+
+/* When dropdown is open, square off bottom of modal */
+#search_modal .modal-box:has(+ .meilisearch-autocomplete[style*=display: block]),
+#search_modal .modal-box:has(.meilisearch-autocomplete-wrapper) {
+    border-radius: 12px 12px 0 0;
+    border-bottom: none;
+}
+
+/* No results message */
+.meilisearch-no-hits {
+    padding: 12px;
+    color: #9ca3af;
+    font-size: 13px;
+    font-style: italic;
 }

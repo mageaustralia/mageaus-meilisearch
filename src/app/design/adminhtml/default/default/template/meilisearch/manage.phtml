@@ -1,0 +1,171 @@
+<?php
+/**
+ * MeiliSearch Index Management
+ */
+$helper = Mage::helper('meilisearch_search/config');
+$meilisearchHelper = Mage::helper('meilisearch_search/meilisearchhelper');
+?>
+<div class="content-header">
+    <h3><?php echo $this->__('MeiliSearch Index Management') ?></h3>
+</div>
+
+<div class="meilisearch-manage">
+    <?php try { ?>
+        <?php $client = $meilisearchHelper->getClient(); ?>
+        <?php if ($client): ?>
+            <?php 
+            $indexesResponse = $client->getIndexes();
+            $indexes = $indexesResponse->toArray();
+            $statsObj = $client->stats();
+            $stats = (array)$statsObj;
+            
+            // Get configured prefix
+            $prefix = $helper->getIndexPrefix();
+            
+            // Filter indexes to only show those with our prefix
+            if (!empty($prefix) && !empty($indexes['results'])) {
+                $filteredIndexes = array();
+                foreach ($indexes['results'] as $index) {
+                    if (strpos($index->getUid(), $prefix) === 0) {
+                        $filteredIndexes[] = $index;
+                    }
+                }
+                $indexes['results'] = $filteredIndexes;
+            }
+            ?>
+            
+            <div class="meilisearch-stats">
+                <h4><?php echo $this->__('Server Statistics') ?></h4>
+                <table class="form-list">
+                    <tr>
+                        <td class="label"><?php echo $this->__('Index Prefix') ?>:</td>
+                        <td><?php echo $this->escapeHtml($prefix ?: $this->__('(no prefix)')) ?></td>
+                    </tr>
+                    <tr>
+                        <td class="label"><?php echo $this->__('Database Size') ?>:</td>
+                        <td><?php echo number_format($stats['databaseSize'] / 1024 / 1024, 2) ?> MB</td>
+                    </tr>
+                    <tr>
+                        <td class="label"><?php echo $this->__('Last Update') ?>:</td>
+                        <td><?php echo $stats['lastUpdate'] ?></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <br/>
+            
+            <div class="grid">
+                <table class="data" cellspacing="0">
+                    <thead>
+                        <tr class="headings">
+                            <th><?php echo $this->__('Index Name') ?></th>
+                            <th><?php echo $this->__('Documents') ?></th>
+                            <th><?php echo $this->__('Primary Key') ?></th>
+                            <th><?php echo $this->__('Created At') ?></th>
+                            <th><?php echo $this->__('Updated At') ?></th>
+                            <th class="last"><?php echo $this->__('Actions') ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($indexes['results'])): ?>
+                            <?php foreach ($indexes['results'] as $index): ?>
+                                <?php 
+                                $indexStats = $index->stats();
+                                ?>
+                                <tr>
+                                    <td><?php echo $this->escapeHtml($index->getUid()) ?></td>
+                                    <td><?php echo number_format($indexStats['numberOfDocuments']) ?></td>
+                                    <td><?php echo $this->escapeHtml($index->getPrimaryKey() ?: 'N/A') ?></td>
+                                    <td><?php echo $index->getCreatedAt() ? $index->getCreatedAt()->format('Y-m-d H:i:s') : 'N/A' ?></td>
+                                    <td><?php echo $index->getUpdatedAt() ? $index->getUpdatedAt()->format('Y-m-d H:i:s') : 'N/A' ?></td>
+                                    <td class="last">
+                                        <button type="button" 
+                                                class="scalable delete" 
+                                                onclick="if(confirm('<?php echo $this->__('Are you sure you want to delete this index?') ?>')) { 
+                                                    deleteIndex('<?php echo addslashes($index->getUid()) ?>'); 
+                                                }">
+                                            <span><?php echo $this->__('Delete') ?></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" class="a-center"><?php echo $this->__('No indexes found') ?></td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="meilisearch-actions" style="margin-top: 20px;">
+                <button type="button" 
+                        class="scalable save" 
+                        onclick="if(confirm('<?php echo $this->__('This will reindex all MeiliSearch indexes. Continue?') ?>')) { 
+                            setLocation('<?php echo $this->getUrl('*/*/reindexAll') ?>'); 
+                        }">
+                    <span><?php echo $this->__('Reindex All') ?></span>
+                </button>
+                
+                <button type="button" 
+                        class="scalable delete" 
+                        onclick="if(confirm('<?php echo $this->__('This will delete all MeiliSearch indexes. Are you sure?') ?>')) { 
+                            setLocation('<?php echo $this->getUrl('*/*/clearIndexes') ?>'); 
+                        }">
+                    <span><?php echo $this->__('Clear All Indexes') ?></span>
+                </button>
+            </div>
+            
+        <?php else: ?>
+            <div class="messages">
+                <ul class="messages">
+                    <li class="error-msg">
+                        <ul>
+                            <li><?php echo $this->__('MeiliSearch client not initialized. Please check your configuration.') ?></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        <?php endif; ?>
+    <?php } catch (Exception $e) { ?>
+        <div class="messages">
+            <ul class="messages">
+                <li class="error-msg">
+                    <ul>
+                        <li><?php echo $this->__('Error connecting to MeiliSearch: %s', $e->getMessage()) ?></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    <?php } ?>
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+function deleteIndex(indexUid) {
+    new Ajax.Request('<?php echo $this->getUrl('*/*/deleteIndex') ?>', {
+        method: 'post',
+        parameters: {
+            index: indexUid,
+            form_key: FORM_KEY
+        },
+        onSuccess: function(transport) {
+            location.reload();
+        }
+    });
+}
+//]]>
+</script>
+
+<style>
+.meilisearch-manage {
+    padding: 20px;
+}
+.meilisearch-stats table {
+    width: auto;
+}
+.meilisearch-stats td.label {
+    font-weight: bold;
+    padding-right: 20px;
+}
+</style>
