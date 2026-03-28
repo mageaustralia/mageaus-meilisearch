@@ -152,9 +152,7 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
         $products = Mage::getResourceModel('catalog/product_collection');
 
         $products = $products->setStoreId($storeId);
-        // Note: Removed addStoreFilter() to allow global attributes (is_global=1) to load properly
-        // Store filtering is still applied via setStoreId() for display/visibility logic
-        // $products = $products->addStoreFilter($storeId);
+        $products = $products->addStoreFilter($storeId);
         $products = $products->distinct(true);
 
         if ($productIds && count($productIds) > 0) {
