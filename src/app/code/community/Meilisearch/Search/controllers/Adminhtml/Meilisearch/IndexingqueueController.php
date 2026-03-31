@@ -10,6 +10,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
     #[\Override]
     public function preDispatch()
     {
+        $this->_setForcedFormKeyActions(['clear', 'reset']);
         parent::preDispatch();
         $this->_checkQueueIsActivated();
         return $this;
