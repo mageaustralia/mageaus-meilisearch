@@ -3,6 +3,13 @@
 class Meilisearch_Search_Adminhtml_Meilisearch_QueueController extends Mage_Adminhtml_Controller_Action
 {
     #[\Override]
+    public function preDispatch()
+    {
+        $this->_setForcedFormKeyActions(['truncate']);
+        return parent::preDispatch();
+    }
+
+    #[\Override]
     protected function _isAllowed()
     {
         return Mage::getSingleton('admin/session')->isAllowed('system/meilisearch_search/indexing_queue');
