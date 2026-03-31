@@ -52,8 +52,9 @@ class Meilisearch_Search_AjaxController extends Mage_Core_Controller_Front_Actio
             }
 
             $query    = mb_substr(trim($body['query']), 0, 128);
-            $type     = $body['type'] ?? 'product';       // product, category, page, suggestion
-            $objectID = $body['objectID'] ?? null;
+            $allowedTypes = ['product', 'category', 'page', 'blog', 'suggestion'];
+            $type     = in_array($body['type'] ?? '', $allowedTypes, true) ? $body['type'] : 'product';
+            $objectID = $body['objectID'] ?? $body['object_id'] ?? null;
             $name     = mb_substr(trim($body['name'] ?? ''), 0, 255);
             $position = (int) ($body['position'] ?? 0);
             $storeId  = (int) Mage::app()->getStore()->getId();
@@ -85,7 +86,7 @@ class Meilisearch_Search_AjaxController extends Mage_Core_Controller_Front_Actio
                 'store_id'    => $storeId,
                 'query'       => $query,
                 'type'        => $type,
-                'object_id'   => $objectID ? (int) $objectID : null,
+                'object_id'   => ($objectID !== null && is_numeric($objectID)) ? (int) $objectID : null,
                 'object_name' => $name ?: null,
                 'position'    => $position,
             ]);
