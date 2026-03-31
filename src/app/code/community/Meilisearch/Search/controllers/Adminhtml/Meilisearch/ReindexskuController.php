@@ -4,6 +4,13 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
 {
     public const MAX_SKUS = 10;
 
+    #[\Override]
+    public function preDispatch()
+    {
+        $this->_setForcedFormKeyActions(['reindexPost']);
+        return parent::preDispatch();
+    }
+
     public function indexAction()
     {
         $this->_title($this->__('System'))
