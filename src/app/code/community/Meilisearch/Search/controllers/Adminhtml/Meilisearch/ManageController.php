@@ -9,6 +9,13 @@
  */
 class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adminhtml_Controller_Action
 {
+    #[\Override]
+    public function preDispatch()
+    {
+        $this->_setForcedFormKeyActions(['reindexAll', 'clearIndexes', 'deleteIndex']);
+        return parent::preDispatch();
+    }
+
     /**
      * Index management page
      */
@@ -104,11 +111,21 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
     }
 
     /**
-     * Delete a single index via AJAX
+     * Delete a single index via AJAX.
+     * The index UID must start with the configured prefix to prevent deleting unrelated indexes.
      */
     public function deleteIndexAction()
     {
-        $indexUid = $this->getRequest()->getParam('index');
+        $indexUid = (string) $this->getRequest()->getParam('index');
+        $prefix   = (string) Mage::helper('meilisearch_search/config')->getIndexPrefix();
+
+        if ($prefix !== '' && !str_starts_with($indexUid, $prefix)) {
+            $this->getResponse()->setBody(json_encode([
+                'success' => false,
+                'message' => $this->__('Index UID does not match the configured prefix.'),
+            ]));
+            return;
+        }
 
         try {
             $helper = Mage::helper('meilisearch_search/meilisearchhelper');
@@ -138,6 +155,6 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
     #[\Override]
     protected function _isAllowed()
     {
-        return Mage::getSingleton('admin/session')->isAllowed('system');
+        return Mage::getSingleton('admin/session')->isAllowed('system/meilisearch_search');
     }
 }
