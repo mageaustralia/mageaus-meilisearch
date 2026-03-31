@@ -7,12 +7,12 @@ class Meilisearch_Search_Block_System_Config_Form_Field_ProductAdditionalAttribu
 {
     public function __construct()
     {
-        $this->settings = array(
-            'columns' => array(
-                'attribute' => array(
+        $this->settings = [
+            'columns' => [
+                'attribute' => [
                     'label'   => 'Attribute',
                     'options' => function () {
-                        $options = array();
+                        $options = [];
 
                         /** @var Meilisearch_Search_Helper_Entity_Producthelper $product_helper */
                         $product_helper = Mage::helper('meilisearch_search/entity_producthelper');
@@ -26,198 +26,159 @@ class Meilisearch_Search_Block_System_Config_Form_Field_ProductAdditionalAttribu
                     },
                     'rowMethod' => 'getAttribute',
                     'width'     => 160,
-                ),
-                'searchable' => array(
+                ],
+                'searchable' => [
                     'label'   => 'Searchable',
-                    'options' => array(
+                    'options' => [
                         '1' => 'Yes',
                         '0' => 'No',
-                    ),
+                    ],
                     'rowMethod' => 'getSearchable',
-                ),
-                'retrievable' => array(
+                ],
+                'retrievable' => [
                     'label'   => 'Retrievable',
-                    'options' => array(
+                    'options' => [
                         '1' => 'Yes',
                         '0' => 'No',
-                    ),
+                    ],
                     'rowMethod' => 'getRetrievable',
-                ),
-                'order' => array(
+                ],
+                'order' => [
                     'label'   => 'Ordered',
-                    'options' => array(
+                    'options' => [
                         'unordered' => 'Unordered',
                         'ordered'   => 'Ordered',
-                    ),
+                    ],
                     'rowMethod' => 'getOrder',
-                ),
-                'index_no_value' => array(
+                ],
+                'index_no_value' => [
                     'label'   => 'Index empty value',
-                    'options' => array(
+                    'options' => [
                         '1'     => 'Yes',
                         '0'     => 'No',
-                    ),
+                    ],
                     'rowMethod' => 'getIndexNoValue',
-                ),
-            ),
+                ],
+            ],
             'buttonLabel' => 'Add Attribute',
             'addAfter'    => false,
-        );
+        ];
 
         parent::__construct();
     }
-    
-    /**
-     * Add drag and drop functionality
-     */
+
+    #[\Override]
     protected function _prepareToRender()
     {
         parent::_prepareToRender();
-        
-        // Add drag handle column at the beginning
-        $this->addColumn('drag_handle', array(
-            'label' => '',
-            'style' => 'width:20px; cursor:move;',
-            'class' => 'drag-handle'
-        ));
-        
-        // Reorder columns to put drag handle first
+
+        // Add drag handle as the first column
         $columns = $this->_columns;
-        $dragHandle = array_pop($columns);
-        array_unshift($columns, $dragHandle);
-        $this->_columns = $columns;
+        $this->_columns = ['drag_handle' => [
+            'label' => '',
+            'style' => 'width:30px;',
+            'class' => 'drag-handle',
+            'size'  => false,
+            'renderer' => false,
+        ]] + $columns;
     }
-    
-    /**
-     * Render array cell for drag handle column
-     */
+
+    #[\Override]
     protected function _renderCellTemplate($columnName)
     {
-        if ($columnName == 'drag_handle') {
-            return '<td class="drag-handle" style="cursor:move;">☰</td>';
+        if ($columnName === 'drag_handle') {
+            return '<span style="cursor:move;color:#999;font-size:20px;user-select:none;display:inline-block;line-height:1;">&equiv;</span>';
         }
         return parent::_renderCellTemplate($columnName);
     }
-    
+
     /**
      * Add JavaScript for drag and drop
      */
+    #[\Override]
     protected function _toHtml()
     {
         $html = parent::_toHtml();
-        
+
         $html .= '<script type="text/javascript">
         (function() {
             function initDragAndDrop() {
+                // Find the table: try ID first, then search by class within the config field
                 var table = document.getElementById("' . $this->getHtmlId() . '");
+                if (!table) {
+                    // Fallback: find by the field wrapper
+                    var field = document.getElementById("row_' . $this->getHtmlId() . '");
+                    if (field) table = field.querySelector("table");
+                }
+                if (!table) {
+                    // Last resort: find table inside the product_additional_attributes field
+                    var tables = document.querySelectorAll("table");
+                    for (var i = 0; i < tables.length; i++) {
+                        var t = tables[i];
+                        if (t.querySelector("select[name*=product_additional_attributes]")) {
+                            table = t;
+                            break;
+                        }
+                    }
+                }
                 if (!table) return;
-                
+
+                var thead = table.querySelector("thead tr");
                 var tbody = table.querySelector("tbody");
-                if (!tbody) return;
-                
+                if (!thead || !tbody) return;
+
+                // Set up drag events on rows
                 var draggedRow = null;
-                
-                // Add draggable attribute to all rows except the template
-                var rows = tbody.querySelectorAll("tr");
-                rows.forEach(function(row) {
+                tbody.querySelectorAll("tr").forEach(function(row) {
                     if (row.id && row.id.indexOf("_add_template") === -1) {
                         row.draggable = true;
-                        
-                        // Add drag start handler
                         row.addEventListener("dragstart", function(e) {
                             draggedRow = this;
                             e.dataTransfer.effectAllowed = "move";
-                            e.dataTransfer.setData("text/html", this.innerHTML);
-                            this.style.opacity = "0.5";
+                            e.dataTransfer.setData("text/plain", "");
+                            this.style.opacity = "0.4";
                         });
-                        
-                        // Add drag end handler
-                        row.addEventListener("dragend", function(e) {
+                        row.addEventListener("dragend", function() {
                             this.style.opacity = "";
-                            rows.forEach(function(row) {
-                                row.classList.remove("drag-over");
-                            });
+                            tbody.querySelectorAll("tr").forEach(function(r) { r.classList.remove("drag-over"); });
                         });
-                        
-                        // Add drag over handler
                         row.addEventListener("dragover", function(e) {
-                            if (e.preventDefault) {
-                                e.preventDefault();
-                            }
+                            e.preventDefault();
                             e.dataTransfer.dropEffect = "move";
-                            
-                            var thisRow = this;
-                            if (thisRow !== draggedRow) {
-                                thisRow.classList.add("drag-over");
-                            }
-                            return false;
+                            if (this !== draggedRow) this.classList.add("drag-over");
                         });
-                        
-                        // Add drag leave handler
-                        row.addEventListener("dragleave", function(e) {
-                            this.classList.remove("drag-over");
-                        });
-                        
-                        // Add drop handler
+                        row.addEventListener("dragleave", function() { this.classList.remove("drag-over"); });
                         row.addEventListener("drop", function(e) {
-                            if (e.stopPropagation) {
-                                e.stopPropagation();
-                            }
-                            
-                            if (draggedRow !== this) {
-                                // Insert dragged row before this row
+                            e.stopPropagation();
+                            if (draggedRow && draggedRow !== this) {
                                 tbody.insertBefore(draggedRow, this);
-                                
-                                // Reindex all input names
                                 reindexRows();
                             }
-                            
                             return false;
                         });
                     }
                 });
-                
-                // Function to reindex input names after reordering
+
                 function reindexRows() {
                     var index = 0;
-                    var rows = tbody.querySelectorAll("tr");
-                    rows.forEach(function(row) {
+                    tbody.querySelectorAll("tr").forEach(function(row) {
                         if (row.id && row.id.indexOf("_add_template") === -1) {
-                            var inputs = row.querySelectorAll("input, select");
-                            inputs.forEach(function(input) {
-                                if (input.name) {
-                                    input.name = input.name.replace(/\[\d+\]/, "[" + index + "]");
-                                }
+                            row.querySelectorAll("input, select").forEach(function(input) {
+                                if (input.name) input.name = input.name.replace(/\[\d+\]/, "[" + index + "]");
                             });
                             index++;
                         }
                     });
                 }
-                
-                // Add CSS
-                var style = document.createElement("style");
-                style.textContent = `
-                    #' . $this->getHtmlId() . ' .drag-handle {
-                        text-align: center;
-                        color: #999;
-                        font-size: 16px;
-                        padding: 5px;
-                        cursor: move;
-                    }
-                    #' . $this->getHtmlId() . ' tr[draggable="true"] {
-                        cursor: move;
-                    }
-                    #' . $this->getHtmlId() . ' tr.drag-over {
-                        border-top: 2px solid #3366cc;
-                    }
-                    #' . $this->getHtmlId() . ' tbody tr:hover .drag-handle {
-                        color: #333;
-                    }
-                `;
-                document.head.appendChild(style);
+
+                // CSS
+                var tableId = table.id || "meilisearch-drag-table";
+                if (!table.id) table.id = tableId;
+                var s = document.createElement("style");
+                s.textContent = "#" + tableId + " tr.drag-over { border-top: 2px solid #3366cc; } #" + tableId + " tbody tr:hover .drag-handle { color: #333; }";
+                document.head.appendChild(s);
             }
-            
-            // Initialize when DOM is ready
+
             if (document.readyState === "loading") {
                 document.addEventListener("DOMContentLoaded", initDragAndDrop);
             } else {
@@ -225,7 +186,7 @@ class Meilisearch_Search_Block_System_Config_Form_Field_ProductAdditionalAttribu
             }
         })();
         </script>';
-        
+
         return $html;
     }
 }

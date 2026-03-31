@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(getenv('PWD')).'../../../../../Mage.php';
+require_once dirname(getenv('PWD')) . '../../../../../Mage.php';
 
 Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
 
@@ -8,13 +8,13 @@ Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
 
 /** @var Meilisearch_Search_Helper_Config $config */
 $config = Mage::helper('meilisearch_search/config');
-$configReflection = new ReflectionClass(get_class($config));
+$configReflection = new ReflectionClass($config::class);
 
 $allMethods = $configReflection->getMethods(ReflectionMethod::IS_PUBLIC);
 
-$configMethods = array();
+$configMethods = [];
 foreach ($allMethods as $method) {
-    if ($method->getDeclaringClass()->getName() == get_class($config)) {
+    if ($method->getDeclaringClass()->getName() == $config::class) {
         $parameters = $method->getParameters();
         $firstParamter = reset($parameters);
         if ($method->getNumberOfParameters() === 1 && $firstParamter->getName() === 'storeId') {
@@ -29,23 +29,23 @@ $db = $coreResource->getConnection('core_read');
 
 $configTableName = $coreResource->getTableName('core/config_data');
 
-$configRows = $db->query('SELECT path FROM '.$configTableName.' WHERE path LIKE "meilisearch%"')->fetchAll();
+$configRows = $db->query('SELECT path FROM ' . $configTableName . ' WHERE path LIKE "meilisearch%"')->fetchAll();
 
 /** @var Mage_Core_Model_Store $store */
 foreach (Mage::app()->getStores() as $store) {
     $storeId = $store->getId();
 
-    meilisearch_dump_log('-- Dump config for store ID '.$storeId.' --');
+    meilisearch_dump_log('-- Dump config for store ID ' . $storeId . ' --');
 
     meilisearch_dump_log('-- Computed values --');
     foreach ($configMethods as $configMethod) {
         $result = $config->{$configMethod}($storeId);
-        meilisearch_dump_log('$config->'.$configMethod.'('.$storeId.') === '.var_export($result, true));
+        meilisearch_dump_log('$config->' . $configMethod . '(' . $storeId . ') === ' . var_export($result, true));
     }
 
     meilisearch_dump_log('-- Raw values --');
     foreach ($configRows as $row) {
-        meilisearch_dump_log($row['path'].' === '.var_export(Mage::getStoreConfig($row['path'], $storeId), true));
+        meilisearch_dump_log($row['path'] . ' === ' . var_export(Mage::getStoreConfig($row['path'], $storeId), true));
     }
 }
 

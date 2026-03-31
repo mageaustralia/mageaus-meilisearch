@@ -23,10 +23,13 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue_Edit extends Mage_Adminht
      *
      * @return string
      */
+    #[\Override]
     public function getHeaderText()
     {
-        return Mage::helper('meilisearch_search')->__('Meilisearch Search - Indexing Queue Job #%s',
-            Mage::registry('meilisearch_current_job')->getJobId());
+        return Mage::helper('meilisearch_search')->__(
+            'Meilisearch Search - Indexing Queue Job #%s',
+            Mage::registry('meilisearch_current_job')->getJobId(),
+        );
     }
 
     /**
@@ -34,6 +37,7 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue_Edit extends Mage_Adminht
      *
      * @return string
      */
+    #[\Override]
     public function getHeaderCssClass()
     {
         return 'icon-head meilisearch-head-icon';

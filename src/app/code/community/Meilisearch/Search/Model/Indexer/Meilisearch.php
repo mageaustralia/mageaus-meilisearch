@@ -2,7 +2,7 @@
 
 class Meilisearch_Search_Model_Indexer_Meilisearch extends Meilisearch_Search_Model_Indexer_Abstract
 {
-    const EVENT_MATCH_RESULT_KEY = 'meilisearch_match_result';
+    public const EVENT_MATCH_RESULT_KEY = 'meilisearch_match_result';
 
     /** @var Meilisearch_Search_Helper_Config */
     protected $config;
@@ -10,7 +10,7 @@ class Meilisearch_Search_Model_Indexer_Meilisearch extends Meilisearch_Search_Mo
     /** @var Meilisearch_Search_Helper_Logger */
     protected $logger;
 
-    public static $product_categories = array();
+    public static $product_categories = [];
     protected static $credential_error = false;
 
     public function __construct()
@@ -21,49 +21,51 @@ class Meilisearch_Search_Model_Indexer_Meilisearch extends Meilisearch_Search_Mo
         $this->logger = Mage::helper('meilisearch_search/logger');
     }
 
-    protected $_matchedEntities = array(
-        Mage_Catalog_Model_Product::ENTITY => array(
+    protected $_matchedEntities = [
+        Mage_Catalog_Model_Product::ENTITY => [
             Mage_Index_Model_Event::TYPE_SAVE,
             Mage_Index_Model_Event::TYPE_MASS_ACTION,
             Mage_Index_Model_Event::TYPE_DELETE,
-        ),
-        Mage_Catalog_Model_Resource_Eav_Attribute::ENTITY => array(
+        ],
+        Mage_Catalog_Model_Resource_Eav_Attribute::ENTITY => [
             Mage_Index_Model_Event::TYPE_SAVE,
             Mage_Index_Model_Event::TYPE_DELETE,
-        ),
-        Mage_Core_Model_Store::ENTITY => array(
+        ],
+        Mage_Core_Model_Store::ENTITY => [
             Mage_Index_Model_Event::TYPE_SAVE,
             Mage_Index_Model_Event::TYPE_DELETE,
-        ),
-        Mage_Core_Model_Store_Group::ENTITY => array(
+        ],
+        Mage_Core_Model_Store_Group::ENTITY => [
             Mage_Index_Model_Event::TYPE_SAVE,
-        ),
-        Mage_Core_Model_Config_Data::ENTITY => array(
+        ],
+        Mage_Core_Model_Config_Data::ENTITY => [
             Mage_Index_Model_Event::TYPE_SAVE,
-        ),
-        Mage_Catalog_Model_Convert_Adapter_Product::ENTITY => array(
+        ],
+        Mage_Catalog_Model_Convert_Adapter_Product::ENTITY => [
             Mage_Index_Model_Event::TYPE_SAVE,
-        ),
-        Mage_Catalog_Model_Category::ENTITY => array(
+        ],
+        Mage_Catalog_Model_Category::ENTITY => [
             Mage_Index_Model_Event::TYPE_SAVE,
             Mage_Index_Model_Event::TYPE_DELETE,
-        ),
-    );
+        ],
+    ];
 
     public function getName()
     {
         return Mage::helper('meilisearch_search')->__('Meilisearch Search Products');
     }
 
+    #[\Override]
     public function getDescription()
     {
         /** @var Meilisearch_Search_Helper_Data $helper */
         $helper = Mage::helper('meilisearch_search');
-        $decription = $helper->__('Rebuild products.').' '.$helper->__($this->enableQueueMsg);
+        $decription = $helper->__('Rebuild products.') . ' ' . $helper->__($this->enableQueueMsg);
 
         return $decription;
     }
 
+    #[\Override]
     public function matchEvent(Mage_Index_Model_Event $event)
     {
         /** @var Mage_Index_Model_Indexer $indexer */
@@ -138,8 +140,10 @@ class Meilisearch_Search_Model_Indexer_Meilisearch extends Meilisearch_Search_Mo
                     $oldCategories = static::$product_categories[$product->getId()];
                     $newCategories = $product->getCategoryIds();
 
-                    $diffCategories = array_merge(array_diff($oldCategories, $newCategories),
-                        array_diff($newCategories, $oldCategories));
+                    $diffCategories = array_merge(
+                        array_diff($oldCategories, $newCategories),
+                        array_diff($newCategories, $oldCategories),
+                    );
 
                     $event->addNewData('catalogsearch_update_category_id', $diffCategories);
                 }
@@ -179,8 +183,8 @@ class Meilisearch_Search_Model_Indexer_Meilisearch extends Meilisearch_Search_Mo
             // Only check credentials if direct indexing (non-queue mode)
             $hasValidCredentials = false;
             foreach (Mage::app()->getStores() as $store) {
-                if ($store->getIsActive() && 
-                    $this->config->getServerUrl($store->getId()) && 
+                if ($store->getIsActive() &&
+                    $this->config->getServerUrl($store->getId()) &&
                     $this->config->getAPIKey($store->getId())) {
                     $hasValidCredentials = true;
                     break;
@@ -225,6 +229,7 @@ class Meilisearch_Search_Model_Indexer_Meilisearch extends Meilisearch_Search_Mo
     /**
      * Rebuild all index data.
      */
+    #[\Override]
     public function reindexAll()
     {
         if ($this->config->isModuleOutputEnabled() === false) {
@@ -234,8 +239,8 @@ class Meilisearch_Search_Model_Indexer_Meilisearch extends Meilisearch_Search_Mo
         // Check credentials for all active stores
         $hasValidCredentials = false;
         foreach (Mage::app()->getStores() as $store) {
-            if ($store->getIsActive() && 
-                $this->config->getServerUrl($store->getId()) && 
+            if ($store->getIsActive() &&
+                $this->config->getServerUrl($store->getId()) &&
                 $this->config->getAPIKey($store->getId())) {
                 $hasValidCredentials = true;
                 break;

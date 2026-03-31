@@ -2,8 +2,8 @@
 
 class Meilisearch_Search_Model_Indexer_Meilisearchqueuerunner extends Mage_Index_Model_Indexer_Abstract
 {
-    const INDEXER_ID = 'meilisearch_queue_runner';
-    const EVENT_MATCH_RESULT_KEY = 'meilisearch_match_result';
+    public const INDEXER_ID = 'meilisearch_queue_runner';
+    public const EVENT_MATCH_RESULT_KEY = 'meilisearch_match_result';
 
     /** @var Meilisearch_Search_Helper_Config */
     protected $config;
@@ -18,8 +18,9 @@ class Meilisearch_Search_Model_Indexer_Meilisearchqueuerunner extends Mage_Index
         $this->queue = Mage::getSingleton('meilisearch_search/queue');
     }
 
-    protected $_matchedEntities = array();
+    protected $_matchedEntities = [];
 
+    #[\Override]
     protected function _getResource()
     {
         return Mage::getResourceSingleton('catalogsearch/indexer_fulltext');
@@ -30,11 +31,13 @@ class Meilisearch_Search_Model_Indexer_Meilisearchqueuerunner extends Mage_Index
         return Mage::helper('meilisearch_search')->__('Meilisearch Search Queue Runner');
     }
 
+    #[\Override]
     public function getDescription()
     {
         return Mage::helper('meilisearch_search')->__('Process the queue if enabled. This allow to run jobs in the queue');
     }
 
+    #[\Override]
     public function matchEvent(Mage_Index_Model_Event $event)
     {
         return false;
@@ -55,13 +58,12 @@ class Meilisearch_Search_Model_Indexer_Meilisearchqueuerunner extends Mage_Index
         return $this;
     }
 
-    protected function _processEvent(Mage_Index_Model_Event $event)
-    {
-    }
+    protected function _processEvent(Mage_Index_Model_Event $event) {}
 
     /**
      * Rebuild all index data.
      */
+    #[\Override]
     public function reindexAll()
     {
         if (!$this->config->getServerUrl() || !$this->config->getAPIKey()) {

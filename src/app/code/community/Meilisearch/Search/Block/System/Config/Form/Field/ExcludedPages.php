@@ -7,12 +7,12 @@ class Meilisearch_Search_Block_System_Config_Form_Field_ExcludedPages extends Me
 {
     public function __construct()
     {
-        $this->settings = array(
-            'columns' => array(
-                'pages' => array(
+        $this->settings = [
+            'columns' => [
+                'pages' => [
                     'label'   => 'Pages',
                     'options' => function () {
-                        $options = array();
+                        $options = [];
 
                         /** @var Mage_Cms_Model_Resource_Page_Collection $magento_pages */
                         $magento_pages = Mage::getModel('cms/page')->getCollection()->addFieldToFilter('is_active', 1);
@@ -26,11 +26,11 @@ class Meilisearch_Search_Block_System_Config_Form_Field_ExcludedPages extends Me
                     },
                     'rowMethod' => 'getPages',
                     'width'     => 230,
-                ),
-            ),
+                ],
+            ],
             'buttonLabel' => 'Add Excluded Page',
             'addAfter'    => false,
-        );
+        ];
 
         parent::__construct();
     }

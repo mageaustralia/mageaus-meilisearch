@@ -2,7 +2,7 @@
 
 class Meilisearch_Search_Model_Job extends Mage_Core_Model_Abstract
 {
-    const CACHE_TAG = 'meilisearch_queue_job';
+    public const CACHE_TAG = 'meilisearch_queue_job';
 
     protected $_cacheTag = 'meilisearch_queue_job';
     protected $_eventPrefix = 'meilisearch_queue_job';
@@ -42,18 +42,16 @@ class Meilisearch_Search_Model_Job extends Mage_Core_Model_Abstract
         $status = $this->getStatus();
         $labels = Mage::getModel('meilisearch_search/source_jobStatuses')->getStatuses();
 
-        return isset($labels[$status]) ? $labels[$status] : $status;
+        return $labels[$status] ?? $status;
     }
 
     /**
-     * @param Exception $e
-     *
      * @return Meilisearch_Search_Model_Job
      */
     public function saveError(Exception $e)
     {
         $this->setErrorLog($e->getMessage());
-        $this->save($this);
+        $this->save();
 
         return $this;
     }

@@ -32,7 +32,7 @@ class Meilisearch_Search_Block_Adminhtml_Notifications extends Mage_Adminhtml_Bl
 
         $readConnection = $resource->getConnection('core_read');
 
-        $size = (int)$readConnection->query('SELECT COUNT(*) as total_count FROM ' . $tableName)->fetchColumn(0);
+        $size = (int) $readConnection->query('SELECT COUNT(*) as total_count FROM ' . $tableName)->fetchColumn(0);
         $maxJobsPerSingleRun = $config->getNumberOfJobToRun();
 
         $etaMinutes = $maxJobsPerSingleRun > 0 ? ceil($size / $maxJobsPerSingleRun) * 5 : 0; // 5 - assuming the queue runner runs every 5 minutes
@@ -45,11 +45,11 @@ class Meilisearch_Search_Block_Adminhtml_Notifications extends Mage_Adminhtml_Bl
             $eta = $hours . ' hours ' . $restMinutes . ' minutes';
         }
 
-        $queueInfo = array(
+        $queueInfo = [
             'isEnabled' => $config->isQueueActive(),
             'currentSize' => $size,
             'eta' => $eta,
-        );
+        ];
 
         $this->_queueInfo = $queueInfo;
 
@@ -61,11 +61,12 @@ class Meilisearch_Search_Block_Adminhtml_Notifications extends Mage_Adminhtml_Bl
      *
      * @return bool
      */
+    #[\Override]
     protected function _toHtml()
     {
         // Temporarily disabled - return empty string to avoid notifications
         return '';
-        
+
         $queueInfo = $this->getQueueInfo();
         if ($this->showNotification()
             && $queueInfo['isEnabled'] === true

@@ -6,8 +6,8 @@ class Meilisearch_Search_Helper_Logger extends Mage_Core_Helper_Abstract
     protected $config;
 
     protected $enabled;
-    protected $timers = array();
-    protected $stores = array();
+    protected $timers = [];
+    protected $stores = [];
 
     public function __construct()
     {
@@ -46,7 +46,7 @@ class Meilisearch_Search_Helper_Logger extends Mage_Core_Helper_Abstract
 
         $this->log('');
         $this->log('');
-        $this->log('>>>>> BEGIN '.$action);
+        $this->log('>>>>> BEGIN ' . $action);
         $this->timers[$action] = microtime(true);
     }
 
@@ -60,7 +60,7 @@ class Meilisearch_Search_Helper_Logger extends Mage_Core_Helper_Abstract
             throw new Exception('Meilisearch Logger => non existing action');
         }
 
-        $this->log('<<<<< END '.$action.' ('.$this->formatTime($this->timers[$action], microtime(true)).')');
+        $this->log('<<<<< END ' . $action . ' (' . $this->formatTime($this->timers[$action], microtime(true)) . ')');
     }
 
     public function log($message, $forceLog = false)
@@ -72,6 +72,6 @@ class Meilisearch_Search_Helper_Logger extends Mage_Core_Helper_Abstract
 
     protected function formatTime($begin, $end)
     {
-        return ($end - $begin).'sec';
+        return ($end - $begin) . 'sec';
     }
 }

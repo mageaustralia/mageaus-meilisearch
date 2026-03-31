@@ -7,97 +7,94 @@ class Meilisearch_Search_Block_System_Config_Form_Field_CategoryAdditionalAttrib
 {
     public function __construct()
     {
-        $this->settings = array(
-            'columns' => array(
-                'attribute' => array(
+        $this->settings = [
+            'columns' => [
+                'attribute' => [
                     'label'   => 'Attribute',
                     'options' => function () {
-                        $options = array();
+                        $options = [];
 
                         /** @var Meilisearch_Search_Helper_Entity_Categoryhelper $category_helper */
                         $category_helper = Mage::helper('meilisearch_search/entity_categoryhelper');
 
                         $searchableAttributes = $category_helper->getAllAttributes();
                         foreach ($searchableAttributes as $key => $label) {
-                            $options[$key] = $key ? $key : $label;
+                            $options[$key] = $key ?: $label;
                         }
 
                         return $options;
                     },
                     'rowMethod' => 'getAttribute',
                     'width'     => 160,
-                ),
-                'searchable' => array(
+                ],
+                'searchable' => [
                     'label'   => 'Searchable',
-                    'options' => array(
+                    'options' => [
                         '1' => 'Yes',
                         '0' => 'No',
-                    ),
+                    ],
                     'rowMethod' => 'getSearchable',
-                ),
-                'retrievable' => array(
+                ],
+                'retrievable' => [
                     'label'   => 'Retrievable',
-                    'options' => array(
+                    'options' => [
                         '1' => 'Yes',
                         '0' => 'No',
-                    ),
+                    ],
                     'rowMethod' => 'getRetrievable',
-                ),
-                'order' => array(
+                ],
+                'order' => [
                     'label'   => 'Ordered',
-                    'options' => array(
+                    'options' => [
                         'unordered' => 'Unordered',
                         'ordered'   => 'Ordered',
-                    ),
+                    ],
                     'rowMethod' => 'getOrder',
-                ),
-            ),
+                ],
+            ],
             'buttonLabel' => 'Add Attribute',
             'addAfter'    => false,
-        );
+        ];
 
         parent::__construct();
     }
-    
+
     /**
      * Add drag and drop functionality
      */
+    #[\Override]
     protected function _prepareToRender()
     {
         parent::_prepareToRender();
-        
-        // Add drag handle column at the beginning
-        $this->addColumn('drag_handle', array(
-            'label' => '',
-            'style' => 'width:20px; cursor:move;',
-            'class' => 'drag-handle'
-        ));
-        
-        // Reorder columns to put drag handle first
+
+        // Add drag handle as the first column
         $columns = $this->_columns;
-        $dragHandle = array_pop($columns);
-        array_unshift($columns, $dragHandle);
-        $this->_columns = $columns;
+        $this->_columns = ['drag_handle' => [
+            'label' => '',
+            'style' => 'width:30px;',
+            'class' => 'drag-handle',
+            'size'  => false,
+            'renderer' => false,
+        ]] + $columns;
     }
-    
-    /**
-     * Render array cell for drag handle column
-     */
+
+    #[\Override]
     protected function _renderCellTemplate($columnName)
     {
-        if ($columnName == 'drag_handle') {
-            return '<td class="drag-handle" style="cursor:move;">☰</td>';
+        if ($columnName === 'drag_handle') {
+            return '<span style="cursor:move;color:#999;font-size:20px;user-select:none;display:inline-block;line-height:1;">&equiv;</span>';
         }
         return parent::_renderCellTemplate($columnName);
     }
-    
+
     /**
      * Add JavaScript for drag and drop
      */
+    #[\Override]
     protected function _toHtml()
     {
         $html = parent::_toHtml();
-        
+
         $html .= '<script type="text/javascript">
         (function() {
             function initDragAndDrop() {
@@ -217,7 +214,7 @@ class Meilisearch_Search_Block_System_Config_Form_Field_CategoryAdditionalAttrib
             }
         })();
         </script>';
-        
+
         return $html;
     }
 }

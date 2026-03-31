@@ -1,7 +1,7 @@
 <?php
 
 // Include Meilisearch autoloader for OpenMage
-require_once dirname(dirname(__FILE__)) . '/Model/Autoloader.php';
+require_once dirname(__FILE__, 2) . '/Model/Autoloader.php';
 
 class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstract
 {
@@ -15,7 +15,7 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
     protected $maxRecordSize;
 
     /** @var array */
-    protected $potentiallyLongAttributes = array('description', 'short_description', 'meta_description', 'content');
+    protected $potentiallyLongAttributes = ['description', 'short_description', 'meta_description', 'content'];
 
     /** @var string */
     private $lastUsedIndexName;
@@ -23,17 +23,55 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
     /** @var int */
     private $lastTaskId;
 
+    /** @var mixed */
+    private $lastTask;
+
     public function __construct()
     {
         $this->config = Mage::helper('meilisearch_search/config');
         $this->resetCredentialsFromConfig();
     }
 
+    /**
+     * Extract task UID from response (handles both Task objects and arrays)
+     *
+     * @param mixed $response
+     * @return string|null
+     */
+    protected function extractTaskUid($response)
+    {
+        if (is_object($response) && method_exists($response, 'getTaskUid')) {
+            return $response->getTaskUid();
+        } elseif (is_array($response) && isset($response['taskUid'])) {
+            return $response['taskUid'];
+        }
+        return null;
+    }
+
+    /**
+     * Wait for a task to complete
+     *
+     * @param mixed $taskOrUid Task object or task UID
+     * @return void
+     */
+    protected function waitForTask($taskOrUid)
+    {
+        if (is_object($taskOrUid) && method_exists($taskOrUid, 'wait')) {
+            // New SDK - Task object has wait() method
+            $taskOrUid->wait();
+        } elseif (is_numeric($taskOrUid) || is_string($taskOrUid)) {
+            // Old SDK would use client->waitForTask(), but new SDK needs Task object
+            // We can't wait for just a UID in the new SDK without getting the task first
+            // So we'll skip waiting in this case
+            return;
+        }
+    }
+
     public function resetCredentialsFromConfig()
     {
-        $serverUrl = trim($this->config->getServerUrl());
-        $apiKey = trim($this->config->getAPIKey());
-        
+        $serverUrl = trim((string) $this->config->getServerUrl());
+        $apiKey = trim((string) $this->config->getAPIKey());
+
         if ($serverUrl && $apiKey) {
             try {
                 $this->client = new \Meilisearch\Client($serverUrl, $apiKey);
@@ -50,22 +88,15 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
         return $this->client;
     }
 
-    public function generateSearchSecuredApiKey($key, $params = array())
-    {
-        // Meilisearch doesn't have the same secured API key concept
-        // We'll return the regular search key for now
-        return $this->config->getSearchOnlyAPIKey() ?: $key;
-    }
-
     public function getIndex($name)
     {
         // Create index if it doesn't exist
         try {
             $this->client->getIndex($name);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             $this->client->createIndex($name, ['primaryKey' => 'objectID']);
         }
-        
+
         return $this->client->index($name);
     }
 
@@ -73,7 +104,7 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
     {
         $indexes = $this->client->getIndexes();
         $result = ['items' => []];
-        
+
         foreach ($indexes as $index) {
             $result['items'][] = [
                 'name' => $index->getUid(),
@@ -85,22 +116,22 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
                 'pendingTask' => false,
             ];
         }
-        
+
         return $result;
     }
 
     public function query($indexName, $q, $params)
     {
         $index = $this->client->index($indexName);
-        
+
         // Convert Algolia params to Meilisearch params
         $meilisearchParams = $this->convertSearchParams($params);
-        
+
         // Store the index name for use in convertSearchParams
         $this->lastUsedIndexName = $indexName;
-        
+
         $searchResult = $index->search($q, $meilisearchParams);
-        
+
         // Convert Meilisearch SearchResult object to Algolia-compatible array format
         return [
             'hits' => $searchResult->getHits(),
@@ -117,18 +148,18 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
     public function getObjects($indexName, $objectIds)
     {
         $index = $this->client->index($indexName);
-        
+
         // Meilisearch getDocuments() expects a DocumentsQuery object or null
         $results = [];
         foreach ($objectIds as $objectId) {
             try {
                 $doc = $index->getDocument($objectId);
                 $results[] = $doc;
-            } catch (\Exception $e) {
+            } catch (\Exception) {
                 // Document not found, skip
             }
         }
-        
+
         return ['results' => $results];
     }
 
@@ -137,68 +168,72 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
         // Create index if it doesn't exist
         try {
             $this->client->getIndex($indexName);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             $this->client->createIndex($indexName, ['primaryKey' => 'objectID']);
         }
-        
+
         $index = $this->client->index($indexName);
-        
+
         // Convert Algolia settings to Meilisearch settings
         $meilisearchSettings = $this->convertIndexSettings($settings);
-        
+
         // Debug logging
         Mage::log('Meilisearch settings for ' . $indexName . ': ' . json_encode($meilisearchSettings), null, 'meilisearch_debug.log');
-        
+
         // Additional check for empty arrays that should be objects
         foreach ($meilisearchSettings as $key => &$value) {
             if (is_array($value) && empty($value) && in_array($key, ['synonyms', 'stopWords'])) {
                 $value = new \stdClass();
             }
         }
-        
+
         // If settings is empty array, don't update
         if (empty($meilisearchSettings)) {
             return ['taskID' => 0];
         }
-        
+
         $res = $index->updateSettings($meilisearchSettings);
-        
+
         $this->lastUsedIndexName = $indexName;
-        $this->lastTaskId = $res['taskUid'];
-        
-        return ['taskID' => $res['taskUid']];
+        $this->lastTask = $res;
+        $this->lastTaskId = $this->extractTaskUid($res);
+
+        return ['taskID' => $this->extractTaskUid($res)];
     }
 
     public function clearIndex($indexName)
     {
         $index = $this->client->index($indexName);
         $res = $index->deleteAllDocuments();
-        
+
         $this->lastUsedIndexName = $indexName;
-        $this->lastTaskId = $res['taskUid'];
-        
-        return ['taskID' => $res['taskUid']];
+        $this->lastTask = $res;
+        $this->lastTaskId = $this->extractTaskUid($res);
+
+        return ['taskID' => $this->extractTaskUid($res)];
     }
 
     public function deleteIndex($indexName)
     {
         $res = $this->client->deleteIndex($indexName);
-        
+
         $this->lastUsedIndexName = $indexName;
-        $this->lastTaskId = $res['taskUid'];
-        
-        return ['taskID' => $res['taskUid']];
+        $this->lastTask = $res;
+        $this->lastTaskId = $this->extractTaskUid($res);
+
+        return ['taskID' => $this->extractTaskUid($res)];
     }
 
     public function deleteObjects($ids, $indexName)
     {
         $index = $this->client->index($indexName);
         $res = $index->deleteDocuments($ids);
-        
+
         $this->lastUsedIndexName = $indexName;
-        $this->lastTaskId = $res['taskUid'];
-        
-        return ['taskID' => $res['taskUid']];
+        $this->lastTask = $res;
+        $this->lastTaskId = $this->extractTaskUid($res);
+
+        return ['taskID' => $this->extractTaskUid($res)];
     }
 
     public function deleteObject($indexName, $objectId)
@@ -208,81 +243,49 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
 
     public function moveIndex($tmpIndexName, $indexName)
     {
-        // Meilisearch doesn't have a direct moveIndex method
-        // We'll use a different approach: delete old index and rename
-        
+        // Use Meilisearch's native swap-indexes API (v0.30+)
+        // Atomically swaps the two indices, then deletes the old tmp one
         try {
-            // Delete the target index if it exists
-            $res = $this->client->deleteIndex($indexName);
-            // Wait for deletion to complete
-            $this->client->waitForTask($res['taskUid']);
-        } catch (\Exception $e) {
-            // Index might not exist, continue
-        }
-        
-        // Now we need to recreate the index with data from tmp index
-        // Since Meilisearch doesn't support renaming, we'll copy data
-        try {
-            // Get all documents from tmp index
-            $tmpIndex = $this->client->index($tmpIndexName);
-            
-            // Create new index with the target name
-            $this->client->createIndex($indexName, ['primaryKey' => 'objectID']);
-            $targetIndex = $this->client->index($indexName);
-            
-            // Copy settings
-            $settings = $tmpIndex->getSettings();
-            if (!empty($settings)) {
-                $targetIndex->updateSettings($settings);
-            }
-            
-            // Copy all documents in batches
-            $offset = 0;
-            $limit = 1000; // Get 1000 documents at a time
-            
-            do {
-                // Create DocumentsQuery object for the new API
-                $query = new \Meilisearch\Contracts\DocumentsQuery();
-                $query->setOffset($offset);
-                $query->setLimit($limit);
-                
-                $documents = $tmpIndex->getDocuments($query);
-                $results = $documents->getResults();
-                
-                if (!empty($results)) {
-                    $targetIndex->addDocuments($results);
-                    $offset += count($results);
-                }
-            } while (count($results) == $limit); // Continue if we got a full batch
-            
-            // Delete tmp index
-            $res = $this->client->deleteIndex($tmpIndexName);
-            
-            return ['taskID' => $res['taskUid']];
-        } catch (\Exception $e) {
-            // If something went wrong, still try to delete tmp index
+            // Ensure target index exists (swap requires both to exist)
             try {
-                $res = $this->client->deleteIndex($tmpIndexName);
-                return ['taskID' => $res['taskUid']];
-            } catch (\Exception $e2) {
-                return ['taskID' => 0];
+                $this->client->getIndex($indexName);
+            } catch (\Exception) {
+                $res = $this->client->createIndex($indexName, ['primaryKey' => 'objectID']);
+                $this->waitForTask($res);
             }
+
+            $res = $this->client->swapIndexes([
+                [$tmpIndexName, $indexName],
+            ]);
+            $this->waitForTask($res);
+
+            // Delete the old index (now under the tmp name after swap)
+            $res = $this->client->deleteIndex($tmpIndexName);
+            return ['taskID' => $this->extractTaskUid($res)];
+        } catch (\Exception $e) {
+            Mage::log('Meilisearch moveIndex error: ' . $e->getMessage(), 3, 'meilisearch.log');
+            // Fallback: if swap not supported, delete and recreate
+            try {
+                $this->client->deleteIndex($tmpIndexName);
+            } catch (\Exception) {
+            }
+            return ['taskID' => 0];
         }
     }
 
     public function mergeSettings($indexName, $settings)
     {
         $onlineSettings = [];
-        
+
         try {
             $index = $this->client->index($indexName);
             $onlineSettings = $index->getSettings();
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             // Index might not exist yet
         }
 
         $settings = $this->castSettings($settings);
-        
+
         foreach ($settings as $key => $value) {
             $onlineSettings[$key] = $value;
         }
@@ -295,24 +298,28 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
         // Create index if it doesn't exist
         try {
             $this->client->getIndex($indexName);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             $this->client->createIndex($indexName, ['primaryKey' => 'objectID']);
         }
-        
+
         $index = $this->client->index($indexName);
-        
+
         // Debug log the first object to check structure
         if (!empty($objects) && isset($objects[0])) {
             Mage::log('First document being indexed: ' . json_encode($objects[0]), null, 'meilisearch_debug.log');
         }
-        
+
         // Meilisearch needs to know the primary key is 'objectID'
         $res = $index->addDocuments($objects, 'objectID');
-        
+
         $this->lastUsedIndexName = $indexName;
-        $this->lastTaskId = $res['taskUid'];
-        
-        return ['taskID' => $res['taskUid']];
+
+        // Store the task object and extract UID
+        $this->lastTask = $res;
+        $taskUid = $this->extractTaskUid($res);
+        $this->lastTaskId = $taskUid;
+
+        return ['taskID' => $taskUid];
     }
 
     public function saveObjects($objects, $indexName)
@@ -322,17 +329,12 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
 
     public function waitLastTask()
     {
-        if (!isset($this->lastUsedIndexName) || !isset($this->lastTaskId)) {
+        if (!isset($this->lastUsedIndexName) || !isset($this->lastTask)) {
             return;
         }
 
-        $this->client->waitForTask($this->lastTaskId);
-    }
-
-    public function setExtraHeader($key, $value)
-    {
-        // Meilisearch client doesn't support extra headers the same way
-        // This is mostly used for analytics in Algolia
+        // Wait for the last task to complete
+        $this->waitForTask($this->lastTask);
     }
 
     public function getIndexSettings($indexName)
@@ -345,48 +347,36 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
     {
         $fromIndex = $this->client->index($fromIndexName);
         $toIndex = $this->client->index($toIndexName);
-        
+
         $synonyms = $fromIndex->getSynonyms();
         if (!empty($synonyms)) {
             $toIndex->updateSynonyms($synonyms);
         }
     }
 
-    public function copyRules($fromIndexName, $toIndexName)
-    {
-        // Meilisearch doesn't have query rules like Algolia
-        // We might implement this differently based on requirements
-    }
-
-    public function setQueryRules($rules, $indexName)
-    {
-        // Meilisearch doesn't have query rules like Algolia
-        // We might implement this differently based on requirements
-    }
-
     /**
-     * Convert Algolia search params to Meilisearch format
+     * Convert search params to Meilisearch format
      */
     protected function convertSearchParams($params)
     {
         $meilisearchParams = [];
-        
+
         if (isset($params['hitsPerPage'])) {
             $meilisearchParams['limit'] = $params['hitsPerPage'];
         }
-        
+
         if (isset($params['page'])) {
             $meilisearchParams['offset'] = $params['page'] * ($params['hitsPerPage'] ?? 20);
         }
-        
+
         if (isset($params['filters'])) {
             $meilisearchParams['filter'] = $this->convertFilters($params['filters']);
         }
-        
+
         if (isset($params['facetFilters'])) {
             $meilisearchParams['filter'] = $this->convertFacetFilters($params['facetFilters']);
         }
-        
+
         if (isset($params['numericFilters'])) {
             // Convert numeric filters to Meilisearch format
             $numericFilter = $this->convertNumericFilters($params['numericFilters']);
@@ -396,7 +386,7 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
                 $meilisearchParams['filter'] = $numericFilter;
             }
         }
-        
+
         if (isset($params['attributesToRetrieve'])) {
             // Ensure it's always an array
             if (is_string($params['attributesToRetrieve'])) {
@@ -405,7 +395,7 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
                 $meilisearchParams['attributesToRetrieve'] = $params['attributesToRetrieve'];
             }
         }
-        
+
         if (isset($params['attributesToHighlight']) && !empty($params['attributesToHighlight'])) {
             // Ensure it's always an array
             if (is_string($params['attributesToHighlight'])) {
@@ -414,7 +404,7 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
                 $meilisearchParams['attributesToHighlight'] = $params['attributesToHighlight'];
             }
         }
-        
+
         // Handle facets
         if (isset($params['facets']) && $params['facets'] === '*') {
             // Get all filterable attributes from settings
@@ -423,19 +413,19 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
                 if (isset($settings['filterableAttributes'])) {
                     $meilisearchParams['facets'] = $settings['filterableAttributes'];
                 }
-            } catch (\Exception $e) {
+            } catch (\Exception) {
                 // Default to empty if we can't get settings
                 $meilisearchParams['facets'] = [];
             }
         } elseif (isset($params['facets'])) {
             $meilisearchParams['facets'] = is_array($params['facets']) ? $params['facets'] : [$params['facets']];
         }
-        
+
         // Handle sort
         if (isset($params['sort'])) {
             $meilisearchParams['sort'] = is_array($params['sort']) ? $params['sort'] : [$params['sort']];
         }
-        
+
         // Handle attributesToRetrieve
         if (isset($params['attributesToRetrieve'])) {
             if (is_string($params['attributesToRetrieve']) && $params['attributesToRetrieve'] !== '') {
@@ -444,7 +434,7 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
                 $meilisearchParams['attributesToRetrieve'] = $params['attributesToRetrieve'];
             }
         }
-        
+
         return $meilisearchParams;
     }
 
@@ -457,12 +447,12 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
             // Simple string like "visibility_search=1"
             return $numericFilters;
         }
-        
+
         if (is_array($numericFilters)) {
             // Array of numeric filters
             return implode(' AND ', $numericFilters);
         }
-        
+
         return '';
     }
 
@@ -472,60 +462,54 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
     protected function convertIndexSettings($settings)
     {
         $meilisearchSettings = [];
-        
+
         if (isset($settings['searchableAttributes'])) {
             // Remove "unordered()" prefix as Meilisearch doesn't support it
-            $meilisearchSettings['searchableAttributes'] = array_map(function($attr) {
-                return preg_replace('/^unordered\((.*)\)$/', '$1', $attr);
-            }, $settings['searchableAttributes']);
+            $meilisearchSettings['searchableAttributes'] = array_map(fn($attr) => preg_replace('/^unordered\((.*)\)$/', '$1', (string) $attr), $settings['searchableAttributes']);
         }
-        
+
         if (isset($settings['attributesForFaceting'])) {
-            $meilisearchSettings['filterableAttributes'] = array_map(function($attr) {
-                return str_replace('searchable(', '', str_replace(')', '', $attr));
-            }, $settings['attributesForFaceting']);
+            $meilisearchSettings['filterableAttributes'] = array_map(fn($attr) => str_replace('searchable(', '', str_replace(')', '', $attr)), $settings['attributesForFaceting']);
         }
-        
+
         if (isset($settings['customRanking'])) {
             // Extract attributes for sortableAttributes
-            $meilisearchSettings['sortableAttributes'] = array_map(function($attr) {
-                return str_replace(['asc(', 'desc(', ')'], '', $attr);
-            }, $settings['customRanking']);
-            
+            $meilisearchSettings['sortableAttributes'] = array_map(fn($attr) => str_replace(['asc(', 'desc(', ')'], '', $attr), $settings['customRanking']);
+
             // Build custom ranking rules for Meilisearch
-            $customRankingRules = array();
+            $customRankingRules = [];
             foreach ($settings['customRanking'] as $ranking) {
                 // Convert desc(ordered_qty) to ordered_qty:desc
-                if (preg_match('/^(asc|desc)\(([^)]+)\)$/', $ranking, $matches)) {
+                if (preg_match('/^(asc|desc)\(([^)]+)\)$/', (string) $ranking, $matches)) {
                     $customRankingRules[] = $matches[2] . ':' . $matches[1];
                 }
             }
-            
+
             // Set Meilisearch ranking rules with custom attributes at the end
-            $meilisearchSettings['rankingRules'] = array(
+            $meilisearchSettings['rankingRules'] = [
                 'words',
                 'typo',
                 'proximity',
                 'attribute',
                 'sort',
-                'exactness'
-            );
-            
+                'exactness',
+            ];
+
             // Add custom ranking rules after the default rules
             foreach ($customRankingRules as $rule) {
                 $meilisearchSettings['rankingRules'][] = $rule;
             }
         }
-        
+
         // Handle rankingRules if directly provided (from Magento settings)
         if (isset($settings['rankingRules'])) {
             // Convert Algolia-style ranking rules to Meilisearch format
-            $convertedRules = array();
-            $sortableAttrs = array();
-            
+            $convertedRules = [];
+            $sortableAttrs = [];
+
             foreach ($settings['rankingRules'] as $rule) {
                 // Check if it's a custom ranking rule in Algolia format: desc(attribute) or asc(attribute)
-                if (preg_match('/^(asc|desc)\(([^)]+)\)$/', $rule, $matches)) {
+                if (preg_match('/^(asc|desc)\(([^)]+)\)$/', (string) $rule, $matches)) {
                     // Convert to Meilisearch format: attribute:desc or attribute:asc
                     $convertedRules[] = $matches[2] . ':' . $matches[1];
                     $sortableAttrs[] = $matches[2];
@@ -534,35 +518,35 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
                     $convertedRules[] = $rule;
                 }
             }
-            
+
             $meilisearchSettings['rankingRules'] = $convertedRules;
-            
+
             if (!empty($sortableAttrs)) {
                 if (!isset($meilisearchSettings['sortableAttributes'])) {
-                    $meilisearchSettings['sortableAttributes'] = array();
+                    $meilisearchSettings['sortableAttributes'] = [];
                 }
                 $meilisearchSettings['sortableAttributes'] = array_unique(array_merge(
                     $meilisearchSettings['sortableAttributes'],
-                    $sortableAttrs
+                    $sortableAttrs,
                 ));
             }
         }
-        
+
         if (isset($settings['attributesToRetrieve'])) {
             $meilisearchSettings['displayedAttributes'] = $settings['attributesToRetrieve'];
         }
-        
+
         if (isset($settings['displayedAttributes'])) {
             $meilisearchSettings['displayedAttributes'] = $settings['displayedAttributes'];
         }
-        
+
         if (isset($settings['synonyms'])) {
             $meilisearchSettings['synonyms'] = $this->convertSynonyms($settings['synonyms']);
         }
-        
+
         // Remove Algolia-specific settings that Meilisearch doesn't support
         unset($meilisearchSettings['replicas']);
-        
+
         return $meilisearchSettings;
     }
 
@@ -581,7 +565,7 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
     protected function convertFacetFilters($facetFilters)
     {
         $filters = [];
-        
+
         foreach ($facetFilters as $filter) {
             if (is_array($filter)) {
                 // OR condition
@@ -595,7 +579,7 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
                 $filters[] = $this->parseFacetFilter($filter);
             }
         }
-        
+
         return implode(' AND ', $filters);
     }
 
@@ -604,18 +588,18 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
      */
     protected function parseFacetFilter($filter)
     {
-        if (strpos($filter, ':') !== false) {
-            list($attribute, $value) = explode(':', $filter, 2);
-            
+        if (str_contains((string) $filter, ':')) {
+            [$attribute, $value] = explode(':', (string) $filter, 2);
+
             // Handle negative filters
-            if (strpos($attribute, '-') === 0) {
+            if (str_starts_with($attribute, '-')) {
                 $attribute = substr($attribute, 1);
                 return $attribute . ' != "' . $value . '"';
             }
-            
+
             return $attribute . ' = "' . $value . '"';
         }
-        
+
         return $filter;
     }
 
@@ -625,14 +609,14 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
     public function setSynonyms($indexName, $synonyms)
     {
         $index = $this->getIndex($indexName);
-        
+
         if (!$index) {
             throw new Exception('Index not found: ' . $indexName);
         }
-        
+
         // Convert synonyms to Meilisearch format
         $meilisearchSynonyms = $this->convertSynonyms($synonyms);
-        
+
         // Update synonyms in index settings
         try {
             $index->updateSynonyms($meilisearchSynonyms);
@@ -641,14 +625,14 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
             throw new Exception('Failed to update synonyms: ' . $e->getMessage());
         }
     }
-    
+
     /**
      * Convert Algolia synonyms to Meilisearch format
      */
     protected function convertSynonyms($synonyms)
     {
         if (empty($synonyms)) {
-            return []; // Return empty array for Meilisearch
+            return new \stdClass(); // Return empty object for Meilisearch
         }
 
         $meilisearchSynonyms = [];
@@ -660,9 +644,7 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
                 // Multi-way synonym
                 $words = $synonym['synonyms'] ?? [];
                 foreach ($words as $word) {
-                    $others = array_filter($words, function($w) use ($word) {
-                        return $w !== $word;
-                    });
+                    $others = array_filter($words, fn($w) => $w !== $word);
                     if (!empty($others)) {
                         $meilisearchSynonyms[$word] = array_values($others);
                     }
@@ -670,7 +652,7 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
             }
         }
 
-        return $meilisearchSynonyms;
+        return empty($meilisearchSynonyms) ? new \stdClass() : $meilisearchSynonyms;
     }
 
     /**

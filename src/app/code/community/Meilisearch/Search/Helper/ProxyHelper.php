@@ -2,14 +2,14 @@
 
 class Meilisearch_Search_Helper_ProxyHelper extends Mage_Core_Helper_Abstract
 {
-    const PROXY_URL = 'https://magento-proxy.meilisearch.com/';
-    const PROXY_URL_PARAM_GET_INFO = 'get-info/';
-    const PROXY_URL_PARAM_POST_DATA = 'hs-push/';
+    public const PROXY_URL = 'https://magento-proxy.meilisearch.com/';
+    public const PROXY_URL_PARAM_GET_INFO = 'get-info/';
+    public const PROXY_URL_PARAM_POST_DATA = 'hs-push/';
 
-    const INFO_TYPE_EXTENSION_SUPPORT = 'extension_support';
-    const INFO_TYPE_QUERY_RULES = 'query_rules';
-    const INFO_TYPE_ANALYTICS = 'analytics';
-    const INFO_TYPE_ALL = 'all';
+    public const INFO_TYPE_EXTENSION_SUPPORT = 'extension_support';
+    public const INFO_TYPE_QUERY_RULES = 'query_rules';
+    public const INFO_TYPE_ANALYTICS = 'analytics';
+    public const INFO_TYPE_ALL = 'all';
 
     /** @var Meilisearch_Search_Helper_Config */
     private $configHelper;
@@ -33,12 +33,12 @@ class Meilisearch_Search_Helper_ProxyHelper extends Mage_Core_Helper_Abstract
 
         $token = $appId . ':' . $apiKey;
         $token = base64_encode($token);
-        $token = str_replace(array("\n", '='), '', $token);
+        $token = str_replace(["\n", '='], '', $token);
 
-        $params = array(
+        $params = [
             'appId' => $appId,
             'token' => $token,
-        );
+        ];
 
         if ($type !== self::INFO_TYPE_EXTENSION_SUPPORT) {
             $params['type'] = $type;

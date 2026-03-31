@@ -9,12 +9,12 @@ class Meilisearch_Search_Block_System_Config_Form_Field_Facets extends Meilisear
 
     public function __construct()
     {
-        $this->settings = array(
-            'columns' => array(
-                'attribute' => array(
+        $this->settings = [
+            'columns' => [
+                'attribute' => [
                     'label'   => 'Attribute',
                     'options' => function () {
-                        $options = array();
+                        $options = [];
 
                         /** @var Meilisearch_Search_Helper_Entity_Producthelper $product_helper */
                         $product_helper = Mage::helper('meilisearch_search/entity_producthelper');
@@ -28,42 +28,42 @@ class Meilisearch_Search_Block_System_Config_Form_Field_Facets extends Meilisear
                     },
                     'rowMethod' => 'getAttribute',
                     'width'     => 160,
-                ),
-                'type' => array(
+                ],
+                'type' => [
                     'label'   => 'Facet type',
-                    'options' => array(
+                    'options' => [
                         'conjunctive' => 'Conjunctive',
                         'disjunctive' => 'Disjunctive',
                         'slider'      => 'Slider',
                         'priceRanges' => 'Price Ranges',
-                    ),
+                    ],
                     'rowMethod' => 'getType',
-                ),
-                'label' => array(
+                ],
+                'label' => [
                     'label' => 'Label',
                     'style' => 'width: 100px;',
-                ),
-                'searchable' => array(
+                ],
+                'searchable' => [
                     'label' => 'Searchable?',
-                    'options' => array(
+                    'options' => [
                         '1' => 'Yes',
-                        '2' => 'No'
-                    ),
-                    'rowMethod' => 'getSearchable',
-                ),
-                'create_rule' => array(
-                    'label'  => 'Create Query rule?',
-                    'options' => array(
                         '2' => 'No',
-                        '1' => 'Yes'
-                    ),
+                    ],
+                    'rowMethod' => 'getSearchable',
+                ],
+                'create_rule' => [
+                    'label'  => 'Create Query rule?',
+                    'options' => [
+                        '2' => 'No',
+                        '1' => 'Yes',
+                    ],
                     'rowMethod' => 'getCreateRule',
-                    'disabled' => $this->isQueryRulesDisabled()
-                ),
-            ),
+                    'disabled' => $this->isQueryRulesDisabled(),
+                ],
+            ],
             'buttonLabel' => 'Add Facet',
             'addAfter'    => false,
-        );
+        ];
 
         parent::__construct();
     }
@@ -91,6 +91,7 @@ class Meilisearch_Search_Block_System_Config_Form_Field_Facets extends Meilisear
         return !isset($info['query_rules']) || $info['query_rules'] == 0;
     }
 
+    #[\Override]
     protected function _decorateRowHtml($element, $html)
     {
         if (!$this->isQueryRulesDisabled()) {
@@ -98,8 +99,10 @@ class Meilisearch_Search_Block_System_Config_Form_Field_Facets extends Meilisear
         }
 
         $additionalRow = '<tr class="meilisearch-messages"><td></td><td><div class="meilisearch-config-info icon-stars">';
-        $additionalRow .= $this->__('To get access to this Meilisearch feature, please consider <a href="%s" target="_blank">upgrading to a higher plan.</a>',
-            'https://www.meilisearch.com/pricing/');
+        $additionalRow .= $this->__(
+            'To get access to this Meilisearch feature, please consider <a href="%s" target="_blank">upgrading to a higher plan.</a>',
+            'https://www.meilisearch.com/pricing/',
+        );
         $additionalRow .= '</div></td></tr>';
 
         return '<tr id="row_' . $element->getHtmlId() . '">' . $html . '</tr>' . $additionalRow;

@@ -7,16 +7,16 @@ class Meilisearch_Search_Block_System_Config_Form_Field_AdditionalSections exten
 {
     public function __construct()
     {
-        $this->settings = array(
-            'columns' => array(
-                'name' => array(
+        $this->settings = [
+            'columns' => [
+                'name' => [
                     'label'   => 'Section',
                     'options' => function () {
-                        $options = array();
+                        $options = [];
 
-                        $sections = array(
-                            array('name' => 'pages', 'label' => 'Pages'),
-                        );
+                        $sections = [
+                            ['name' => 'pages', 'label' => 'Pages'],
+                        ];
 
                         /** @var Meilisearch_Search_Helper_Config $config */
                         $config = Mage::helper('meilisearch_search/config');
@@ -27,10 +27,10 @@ class Meilisearch_Search_Block_System_Config_Form_Field_AdditionalSections exten
                                 continue;
                             }
 
-                            $sections[] = array(
+                            $sections[] = [
                                 'name'  => $attribute['attribute'],
-                                'label' => $attribute['label'] ? $attribute['label'] : $attribute['attribute']
-                            );
+                                'label' => $attribute['label'] ?: $attribute['attribute'],
+                            ];
                         }
 
                         foreach ($sections as $section) {
@@ -41,20 +41,20 @@ class Meilisearch_Search_Block_System_Config_Form_Field_AdditionalSections exten
                     },
                     'rowMethod' => 'getName',
                     'width'     => 130,
-                ),
-                'label' => array(
+                ],
+                'label' => [
                     'label' => 'Label',
                     'style' => 'width: 100px;',
-                ),
-                'hitsPerPage' => array(
+                ],
+                'hitsPerPage' => [
                     'label' => 'Hits per page',
                     'style' => 'width: 100px;',
                     'class' => 'required-entry input-text validate-number',
-                ),
-            ),
+                ],
+            ],
             'buttonLabel' => 'Add Section',
             'addAfter'    => false,
-        );
+        ];
 
         parent::__construct();
     }

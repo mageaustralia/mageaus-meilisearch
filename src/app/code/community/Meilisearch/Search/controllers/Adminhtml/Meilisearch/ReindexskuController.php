@@ -2,7 +2,7 @@
 
 class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage_Adminhtml_Controller_Action
 {
-    const MAX_SKUS = 10;
+    public const MAX_SKUS = 10;
 
     public function indexAction()
     {
@@ -18,7 +18,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
     public function reindexPostAction()
     {
         if ($this->getRequest()->getParam('skus')) {
-            $skus = array_filter(array_map('trim', preg_split("/(,|\r\n|\n|\r)/", $this->getRequest()->getParam('skus'))));
+            $skus = array_filter(array_map(trim(...), preg_split("/(,|\r\n|\n|\r)/", (string) $this->getRequest()->getParam('skus'))));
             $session = Mage::getSingleton('adminhtml/session');
             $stores = Mage::app()->getStores();
             $config = Mage::helper('meilisearch_search/config');
@@ -30,8 +30,10 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
             }
 
             if (count($skus) > self::MAX_SKUS) {
-                $session->addError($this->__('The maximal number of SKU(s) is %s. Could you please remove some SKU(s) to fit into the limit?',
-                    self::MAX_SKUS));
+                $session->addError($this->__(
+                    'The maximal number of SKU(s) is %s. Could you please remove some SKU(s) to fit into the limit?',
+                    self::MAX_SKUS,
+                ));
                 $this->_redirect('*/*/');
 
                 return;
@@ -40,7 +42,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
             // Load the collection instead of loading every one individually
             $collection = Mage::getResourceModel('catalog/product_collection')
                 ->addAttributeToSelect('*')
-                ->addAttributeToFilter('sku', array('in' => $skus))
+                ->addAttributeToFilter('sku', ['in' => $skus])
                 ->setFlag('require_stock_items', true);
 
             foreach ($skus as $sku) {
@@ -54,11 +56,11 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
                     $session->addError($e->getMessage());
                 } catch (Meilisearch_Search_Model_Exception_ProductDeletedException $e) {
                     $session->addError(
-                        $this->__('The product "%s" (%s) is deleted.', $e->getProduct()->getName(), $e->getProduct()->getSku())
+                        $this->__('The product "%s" (%s) is deleted.', $e->getProduct()->getName(), $e->getProduct()->getSku()),
                     );
                 } catch (Meilisearch_Search_Model_Exception_ProductOutOfStockException $e) {
                     $session->addError(
-                        $this->__('The product "%s" (%s) is out of stock.', $e->getProduct()->getName(), $e->getProduct()->getSku())
+                        $this->__('The product "%s" (%s) is out of stock.', $e->getProduct()->getName(), $e->getProduct()->getSku()),
                     );
                 } catch (Exception $e) {
                     $session->addError($e->getMessage());
@@ -71,7 +73,6 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
 
     /**
      * @param Mage_Catalog_Model_Product $product
-     * @param array                      $stores
      */
     protected function checkAndReindex($product, array $stores)
     {
@@ -84,11 +85,14 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
 
         foreach ($stores as $storeId => $store) {
             if (!in_array($storeId, $product->getStoreIds())) {
-                $session->addNotice($this->__('The product "%s" (%s) is not associated with store "%s \ %s \ %s".',
-                    $product->getName(), $product->getSku(),
+                $session->addNotice($this->__(
+                    'The product "%s" (%s) is not associated with store "%s \ %s \ %s".',
+                    $product->getName(),
+                    $product->getSku(),
                     $websites[$store->getWebsiteId()]->getName(),
                     $groups[$store->getGroupId()]->getName(),
-                    $store->getName()));
+                    $store->getName(),
+                ));
                 continue;
             }
             try {
@@ -96,50 +100,65 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
                 $productHelper->canProductBeReindexed($product, $storeId);
             } catch (Meilisearch_Search_Model_Exception_ProductDisabledException $e) {
                 $session->addError(
-                    $this->__('The product "%s" (%s) is disabled in store "%s \ %s \ %s".',
-                        $e->getProduct()->getName(), $e->getProduct()->getSku(),
+                    $this->__(
+                        'The product "%s" (%s) is disabled in store "%s \ %s \ %s".',
+                        $e->getProduct()->getName(),
+                        $e->getProduct()->getSku(),
                         $websites[$store->getWebsiteId()]->getName(),
                         $groups[$store->getGroupId()]->getName(),
-                        $stores[$e->getStoreId()]->getName())
+                        $stores[$e->getStoreId()]->getName(),
+                    ),
                 );
                 continue;
             } catch (Meilisearch_Search_Model_Exception_ProductNotVisibleException $e) {
                 // If it's a simple product that is not visible, try to index its parent if it exists
                 if ($e->getProduct()->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_SIMPLE) {
-                    $parentId = $productHelper->getParentProductIds(array($e->getProduct()->getId()));
+                    $parentId = $productHelper->getParentProductIds([$e->getProduct()->getId()]);
                     if (isset($parentId[0])) {
                         $parentProduct = Mage::getModel('catalog/product')->load($parentId[0]);
                         $session->addError(
-                            $this->__('The product "%s" (%s) is not visible but it has a parent product "%s" (%s) for store "%s \ %s \ %s".',
-                                $e->getProduct()->getName(), $e->getProduct()->getSku(), $parentProduct->getName(),
+                            $this->__(
+                                'The product "%s" (%s) is not visible but it has a parent product "%s" (%s) for store "%s \ %s \ %s".',
+                                $e->getProduct()->getName(),
+                                $e->getProduct()->getSku(),
+                                $parentProduct->getName(),
                                 $parentProduct->getSku(),
                                 $websites[$store->getWebsiteId()]->getName(),
                                 $groups[$store->getGroupId()]->getName(),
-                                $stores[$e->getStoreId()]->getName()));
-                        $this->checkAndReindex($parentProduct, array($stores[$e->getStoreId()]));
+                                $stores[$e->getStoreId()]->getName(),
+                            ),
+                        );
+                        $this->checkAndReindex($parentProduct, [$stores[$e->getStoreId()]]);
                         continue;
                     }
                 } else {
                     $session->addError(
-                        $this->__('The product "%s" (%s) is not visible in store "%s \ %s \ %s".',
-                            $e->getProduct()->getName(), $e->getProduct()->getSku(),
+                        $this->__(
+                            'The product "%s" (%s) is not visible in store "%s \ %s \ %s".',
+                            $e->getProduct()->getName(),
+                            $e->getProduct()->getSku(),
                             $websites[$store->getWebsiteId()]->getName(),
                             $groups[$store->getGroupId()]->getName(),
-                            $stores[$e->getStoreId()]->getName())
+                            $stores[$e->getStoreId()]->getName(),
+                        ),
                     );
                     continue;
                 }
             }
-            $productIds = array($product->getId());
+            $productIds = [$product->getId()];
             $productIds = array_merge($productIds, $productHelper->getParentProductIds($productIds));
 
             Mage::helper('meilisearch_search')->rebuildStoreProductIndex($storeId, $productIds);
 
-            $session->addSuccess($this->__('The product "%s" (%s) has been reindexed for store "%s \ %s \ %s".',
-                $product->getName(), $product->getSku(),
-                $websites[$store->getWebsiteId()]->getName(),
-                $groups[$store->getGroupId()]->getName(),
-                $store->getName())
+            $session->addSuccess(
+                $this->__(
+                    'The product "%s" (%s) has been reindexed for store "%s \ %s \ %s".',
+                    $product->getName(),
+                    $product->getSku(),
+                    $websites[$store->getWebsiteId()]->getName(),
+                    $groups[$store->getGroupId()]->getName(),
+                    $store->getName(),
+                ),
             );
         }
     }
@@ -149,6 +168,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
      *
      * @return bool
      */
+    #[\Override]
     protected function _isAllowed()
     {
         return Mage::getSingleton('admin/session')->isAllowed('system/meilisearch_search/reindexsku');

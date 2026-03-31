@@ -2,7 +2,7 @@
 
 class Meilisearch_Search_Model_Indexer_Meilisearchcategories extends Meilisearch_Search_Model_Indexer_Abstract
 {
-    const EVENT_MATCH_RESULT_KEY = 'meilisearch_match_result';
+    public const EVENT_MATCH_RESULT_KEY = 'meilisearch_match_result';
 
     /** @var Meilisearch_Search_Helper_Config */
     protected $config;
@@ -16,27 +16,29 @@ class Meilisearch_Search_Model_Indexer_Meilisearchcategories extends Meilisearch
         $this->config = Mage::helper('meilisearch_search/config');
     }
 
-    protected $_matchedEntities = array(
-        Mage_Catalog_Model_Category::ENTITY => array(
+    protected $_matchedEntities = [
+        Mage_Catalog_Model_Category::ENTITY => [
             Mage_Index_Model_Event::TYPE_SAVE,
             Mage_Index_Model_Event::TYPE_DELETE,
-        ),
-    );
+        ],
+    ];
 
     public function getName()
     {
         return Mage::helper('meilisearch_search')->__('Meilisearch Search Categories');
     }
 
+    #[\Override]
     public function getDescription()
     {
         /** @var Meilisearch_Search_Helper_Data $helper */
         $helper = Mage::helper('meilisearch_search');
-        $decription = $helper->__('Rebuild categories.').' '.$helper->__($this->enableQueueMsg);
+        $decription = $helper->__('Rebuild categories.') . ' ' . $helper->__($this->enableQueueMsg);
 
         return $decription;
     }
 
+    #[\Override]
     public function matchEvent(Mage_Index_Model_Event $event)
     {
         $result = $event->getEntity() !== 'core_config_data';
@@ -65,13 +67,13 @@ class Meilisearch_Search_Model_Indexer_Meilisearchcategories extends Meilisearch
                 /** @var Mage_Catalog_Model_Category $category*/
                 $category = $event->getDataObject();
 
-                $productIds = array();
+                $productIds = [];
                 if ($this->config->indexAllCategoryProductsOnCategoryUpdate()) {
-                    $categories = array_merge(array($category->getId()), $category->getAllChildren(true));
+                    $categories = array_merge([$category->getId()], $category->getAllChildren(true));
 
                     $collection = Mage::getResourceModel('catalog/product_collection');
                     $collection->joinField('category_id', 'catalog/category_product', 'category_id', 'product_id = entity_id', null, 'left');
-                    $collection->addAttributeToFilter('category_id', array('in' => $categories));
+                    $collection->addAttributeToFilter('category_id', ['in' => $categories]);
 
                     $productIds = $collection->getAllIds();
                 } elseif ($this->config->indexProductOnCategoryProductsUpdate()) {
@@ -79,7 +81,7 @@ class Meilisearch_Search_Model_Indexer_Meilisearchcategories extends Meilisearch
                 }
 
                 if (!$category->getData('is_active')) {
-                    $categories = array_merge(array($category->getId()), $category->getAllChildren(true));
+                    $categories = array_merge([$category->getId()], $category->getAllChildren(true));
                     $event->addNewData('catalogsearch_delete_category_id', $categories);
 
                     if ($productIds) {
@@ -87,11 +89,11 @@ class Meilisearch_Search_Model_Indexer_Meilisearchcategories extends Meilisearch
                     }
                 } elseif ($productIds) {
                     $event->addNewData('catalogsearch_update_product_id', $productIds);
-                    $event->addNewData('catalogsearch_update_category_id', array($category->getId()));
+                    $event->addNewData('catalogsearch_update_category_id', [$category->getId()]);
                 } elseif ($movedCategoryId = $category->getMovedCategoryId()) {
-                    $event->addNewData('catalogsearch_update_category_id', array($movedCategoryId));
+                    $event->addNewData('catalogsearch_update_category_id', [$movedCategoryId]);
                 } else {
-                    $event->addNewData('catalogsearch_update_category_id', array($category->getId()));
+                    $event->addNewData('catalogsearch_update_category_id', [$category->getId()]);
                 }
 
                 break;
@@ -174,6 +176,7 @@ class Meilisearch_Search_Model_Indexer_Meilisearchcategories extends Meilisearch
     /**
      * Rebuild all index data.
      */
+    #[\Override]
     public function reindexAll()
     {
         if ($this->config->isModuleOutputEnabled() === false) {

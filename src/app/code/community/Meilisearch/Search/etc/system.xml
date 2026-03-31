@@ -2,23 +2,7 @@
 <config>
     <sections>
         <meilisearch translate="label" module="meilisearch_search">
-            <label>
-                <![CDATA[
-                Meilisearch Search
-                <style>
-                    span.meilisearch-config-warning {
-                        font-size: 25px;
-                        color: #D83900;
-                        position: relative;
-                        top: 4px;
-                    }
-
-                    .comment a {
-                        color: #ea7601;
-                    }
-                </style>
-                ]]>
-            </label>
+            <label>Meilisearch Search</label>
             <tab>catalog</tab>
             <frontend_type>text</frontend_type>
             <sort_order>52</sort_order>
@@ -108,7 +92,7 @@
                             <show_in_store>1</show_in_store>
                             <comment>
                                 <![CDATA[
-                                <span class="meilisearch-config-warning">&#9888;</span> <strong>Warning:</strong> Debug logging generates significant data and can slow indexing performance.<br/>
+                                &#9888; <strong>Warning:</strong> Debug logging generates significant data and can slow indexing performance.<br/>
                                 <strong>💡 Use only for troubleshooting</strong> and disable in production.
                                 ]]>
                             </comment>
@@ -220,7 +204,7 @@
                                 <![CDATA[
                                 If set to Yes, the products inside the results pages will be searchable the refined results updated as-you-type. It requires your theme to expose a <code>top.search</code> and <code>content</code> block.
                                     <br><br>
-                                    <span class="meilisearch-config-warning">&#9888;</span> Enabling instant search can potentially break your design, some work will be required to have a good integration into your theme
+                                    &#9888; Enabling instant search can potentially break your design, some work will be required to have a good integration into your theme
                                     products.
                                 ]]>
                             </comment>
@@ -346,7 +330,7 @@
                             <comment>
                                 <![CDATA[
                                 Configure here the additional auto-completion menu sections you want include in the dropdown menu (Ex. Suggestions, Pages, Manufacturer, Colors).<br /><br>
-                                <span class="meilisearch-config-warning">&#9888;</span> All attributes used here must have been initially included in the <strong>Attributes Configuration</strong> panel and configured as a facet in the <strong>Instant Search Results Page Configuration</strong> panel to be able to refine on the specific attribute.
+                                &#9888; All attributes used here must have been initially included in the <strong>Attributes Configuration</strong> panel and configured as a facet in the <strong>Instant Search Results Page Configuration</strong> panel to be able to refine on the specific attribute.
                                 ]]>
                             </comment>
                         </sections>
@@ -376,7 +360,7 @@
                             <comment>
                                 <![CDATA[
                                 For CMS pages, template directives (e.g. <code>{{block type="core/template" ...}}</code>) will be processed by default. Set this to "No" if you don't want to have template content indexed.<br><br>
-                                <span class="meilisearch-config-warning">&#9888;</span> Do not forget to trigger the Meilisearch Search indexers whenever you modify those settings.
+                                &#9888; Do not forget to trigger the Meilisearch Search indexers whenever you modify those settings.
                                 ]]>
                             </comment>
                         </render_template_directives>
@@ -444,20 +428,10 @@
                                 Facets' documentation: <a target="_blank" href="https://docs.meilisearch.com/learn/getting_started/filtering_and_sorting.html">https://docs.meilisearch.com/learn/getting_started/filtering_and_sorting.html</a>
                                 <br>
                                 <br>
-                                Create a Query rule for facet when you want Meilisearch to automatically filter on a facet when a user searches for its value in query. It means when you create a Query rule for "color" facet and user is searching for query "red shorts", Meilisearch will internally filter results for color "red" and search only for query "shorts". It leads to more relevant users. This query rule is applied for both autocomplete and instant search results. Query rules can be used only when you are on Business or higher plan.
+                                Facets configured here will be added to Meilisearch's <code>filterableAttributes</code> setting.
                                 ]]>
                             </comment>
                         </facets>
-                        <max_values_per_facet translate="label comment">
-                            <label>Number of values per facet</label>
-                            <frontend_type>text</frontend_type>
-                            <validate>validate-digits</validate>
-                            <sort_order>40</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment><![CDATA[The number of values each facet can display.<br/><strong>Default:</strong> 10<br/><strong>💡 Tip:</strong> 5-10 values work best. Use searchable facets for attributes with many values (e.g., brands, colors)]]></comment>
-                        </max_values_per_facet>
                         <sorts>
                             <label>Sorts</label>
                             <frontend_model>meilisearch_search/system_config_form_field_sorts</frontend_model>
@@ -468,23 +442,9 @@
                             <show_in_store>1</show_in_store>
                             <comment>
                                 <![CDATA[
-                                Configure here the different sorting options you want to offer.<br>
-                                Sorts documentation: <a target="_blank" href="https://docs.meilisearch.com/learn/getting_started/filtering_and_sorting.html#sorting">https://docs.meilisearch.com/learn/getting_started/filtering_and_sorting.html#sorting</a>
-
-                                <br /><br />
-                                The extension will create :<br />
-                                - 1 index/store<br />
-                                - 1 index/store/sort<br /><br />
-                                Which means that for a store with:<br />
-
-                                - 2 store (2 languages for example)<br />
-                                - 100 products<br />
-                                - 2 sorts on price (asc, desc)<br />
-                                - 2 sorts on date (asc, desc)<br /><br />
-
-                                You have 100 * 2 + 100 * 4 * 2 = 1000 product records
-
-                                You can reduce the number of records by removing some sort
+                                Configure the sorting options available to users (e.g. price ascending, newest first).<br>
+                                Meilisearch uses <code>sortableAttributes</code> on a single index — no replica indices are needed.<br>
+                                Documentation: <a target="_blank" href="https://docs.meilisearch.com/learn/getting_started/filtering_and_sorting.html#sorting">Meilisearch Sorting</a>
                                 ]]>
                             </comment>
                         </sorts>
@@ -566,12 +526,12 @@
                                 Searchable attributes' documentation: <a target="_blank" href="https://docs.meilisearch.com/reference/api/settings.html#searchable-attributes">https://docs.meilisearch.com/reference/api/settings.html#searchable-attributes</a>
                                 <br><br>
                                 The order of the searchable attributes matters: a query matching the first searchable attribute of a product will put this product before the others in the results. Chose "Ordered" if you want the position of the matching word(s) inside the attribute to matter. A match at the beginning of an attribute will be considered more important: for the query "iPhone", "iPhone 5s" will be ranked before "case for iPhone".<br><br>Index empty value means that if a product attribute isn't set the default value (probably No or N/A, depends on your translations) will not be indexed. This can be handy for categories where not all products do have all attributes set which can cause a lot of "No" facet values.<br>
-                                <br><span class="meilisearch-config-warning">&#9888;</span> Do not forget to reindex your Meilisearch Search index after you've modified this panel.
+                                <br>&#9888; Do not forget to reindex your Meilisearch Search index after you've modified this panel.
                                 ]]>
                             </comment>
                         </product_additional_attributes>
                         <custom_ranking_product_attributes translate="label comment">
-                            <label>Ranking</label>
+                            <label>Custom Ranking Rules</label>
                             <frontend_model>meilisearch_search/system_config_form_field_customRankingProductAttributes</frontend_model>
                             <backend_model>meilisearch_search/system_config_backend_serialized_array</backend_model>
                             <sort_order>40</sort_order>
@@ -584,7 +544,7 @@
                                 What is Custom ranking? <a target="_blank" href="https://docs.meilisearch.com/learn/core_concepts/relevancy.html#ranking-rules">https://docs.meilisearch.com/learn/core_concepts/relevancy.html#ranking-rules</a>
                                 <br /><br />
                                 In case you want to use attribute which cannot be selected from the select box (eg. attribute indexed from outside of Magento), you can use "[use custom attribute]" option and write the name of the attribute into the new text field.<br /><br />
-                                <span class="meilisearch-config-warning">&#9888;</span> All attributes used here must have been initially included in the Attributes configuration panel.
+                                &#9888; All attributes used here must have been initially included in the Attributes configuration panel.
                                 ]]>
                             </comment>
                         </custom_ranking_product_attributes>
@@ -636,7 +596,7 @@
                                 <![CDATA[
                                     Choose which products you want to index (search for) in Meilisearch.
                                     <br />
-                                    <span class="meilisearch-config-warning">&#9888;</span> If you select "Only products visible in Search" and you have enabled "Replace categories pages", you might miss some products on category pages.
+                                    &#9888; If you select "Only products visible in Search" and you have enabled "Replace categories pages", you might miss some products on category pages.
                                 ]]>
                             </comment>
                         </index_visibility>
@@ -667,7 +627,7 @@
                                     Choose here if you want to index whole category tree of the product. If you select "No", only real categories of the product will be indexed.<br /><br />
                                     For example if you have categories with structure "Men &raquo; Blazers" and product belongs only to "Blazers", by default categories "Men" and "Men &raquo; Blazers" will be indexed.
                                     By selecting "No" only "Men &raquo; Blazers" will be indexed.<br /><br />
-                                    <span class="meilisearch-config-warning">&#9888;</span> Beware that selecting "No" will break hierarchical menu widget on instant search page.
+                                    &#9888; Beware that selecting "No" will break hierarchical menu widget on instant search page.
                                 ]]>
                             </comment>
                         </index_whole_category_tree>
@@ -708,12 +668,12 @@
                                 Configure here the category attributes your users can search on. The order of these attributes matters: the higher in the list, the more important to rank the results.<br />
                                 Searchable attributes' documentation: <a target="_blank" href="https://docs.meilisearch.com/reference/api/settings.html#searchable-attributes">https://docs.meilisearch.com/reference/api/settings.html#searchable-attributes</a>
                                 <br><br>
-                                <span class="meilisearch-config-warning">&#9888;</span> Do not forget to reindex your Meilisearch Search index after you've modified this panel.
+                                &#9888; Do not forget to reindex your Meilisearch Search index after you've modified this panel.
                                 ]]>
                             </comment>
                         </category_additional_attributes2>
                         <custom_ranking_category_attributes translate="label comment">
-                            <label>Ranking</label>
+                            <label>Custom Ranking Rules</label>
                             <frontend_model>meilisearch_search/system_config_form_field_customRankingCategoryAttributes</frontend_model>
                             <backend_model>meilisearch_search/system_config_backend_serialized_array</backend_model>
                             <sort_order>30</sort_order>
@@ -726,7 +686,7 @@
                                 What is Custom ranking? <a target="_blank" href="https://docs.meilisearch.com/learn/core_concepts/relevancy.html#ranking-rules">https://docs.meilisearch.com/learn/core_concepts/relevancy.html#ranking-rules</a>
                                 <br /><br />
                                 In case you want to use attribute which cannot be selected from the select box (eg. attribute indexed from outside of Magento), you can use "[use custom attribute]" option and write the name of the attribute into the new text field.<br /><br />
-                                <span class="meilisearch-config-warning">&#9888;</span> All attributes used here must have been included before in the Attributes chart.
+                                &#9888; All attributes used here must have been included before in the Attributes chart.
                                 ]]>
                             </comment>
                         </custom_ranking_category_attributes>
@@ -865,7 +825,7 @@
                                 To schedule the run you need to add this in your crontab:<br>
                                 */5 * * * * php -f /absolute/path/to/magento/shell/indexer.php -- -reindex meilisearch_queue_runner
                                 <br><br>
-                                <span class="meilisearch-config-warning">&#9888;</span> Enabling this option is recommended in production or if your store has a lot of products.
+                                &#9888; Enabling this option is recommended in production or if your store has a lot of products.
                                 ]]>
                             </comment>
                         </active>
@@ -883,7 +843,7 @@
                                 <strong>📊 Example calculation:</strong><br/>
                                 With defaults: 100 elements × 10 jobs = 1,000 products per cron run<br/>
                                 <br/>
-                                <span class="meilisearch-config-warning">&#9888;</span> Each cron run processes: (Elements per job × Number of jobs) products<br/>
+                                &#9888; Each cron run processes: (Elements per job × Number of jobs) products<br/>
                                 <strong>💡 Tip:</strong> Adjust based on your cron frequency and catalog size
                                 ]]>
                             </comment>
@@ -943,87 +903,6 @@
                     </fields>
                 </queue>
                 <!-- Click & Conversion Analytics section removed - was Algolia-specific -->
-                <analytics translate="label">
-                    <label>Google Analytics</label>
-                    <expanded>0</expanded>
-                    <frontend_type>text</frontend_type>
-                    <sort_order>75</sort_order>
-                    <show_in_default>1</show_in_default>
-                    <show_in_website>1</show_in_website>
-                    <show_in_store>1</show_in_store>
-                    <comment>
-                        <![CDATA[
-                        <table>
-                            <tr>
-                                <td>Google Analytics documentation:</td>
-                                <td>Analytics helps you understand search behavior on your site</td>
-                            </tr>
-                        </table>
-                        <br>
-                        <hr>
-                        <br>
-                        ]]>
-                    </comment>
-                    <fields>
-                        <enable translate="label comment">
-                            <label>Enable Google Analytics</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>0</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </enable>
-                        <delay translate="label comment">
-                            <label>Delay (in milliseconds)</label>
-                            <frontend_type>text</frontend_type>
-                            <validate>validate-digits</validate>
-                            <sort_order>10</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>
-                                <![CDATA[
-                                    <p>When the search bar is used, each keystroke triggers a search in Meilisearch. It’s really good for an instantsearch and as-you-type search UX, but it’s not that good for analytics as it generates a lot of data and brings a lot of noise to the analytics. The delay variable defines how long the widget should wait between keystrokes before pushing data to analytics - only the last search will be pushed.</p>
-                                    <p>Default value: 3000</p>
-                                ]]>
-                            </comment>
-                            <depends><enable>1</enable></depends>
-                        </delay>
-                        <trigger_on_ui_interaction translate="label comment">
-                            <label>Trigger the push function before the the delay on UI interaction</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>20</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>
-                                <![CDATA[
-                                    <p>If the user selects a search result even before the push was trigger (because of the delay variable), the push to analytics might never be called. With this parameter you can trigger a data push to analytics if the user interacts with the search results during the delay.</p>
-                                    <p>Default value: Yes</p>
-                                ]]>
-                            </comment>
-                            <depends><enable>1</enable></depends>
-                        </trigger_on_ui_interaction>
-                        <push_initial_search translate="label comment">
-                            <label>Trigger the push function after the initial search</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>30</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>
-                                <![CDATA[
-                                    <p>Sometimes your customers come directly to the search page from a link, so a search is triggered automatically without any action from the user. At the same time, the load of the page triggers standard Google Analytics code to track the page view. By this parameter you can specify if you want to trigger a data push on this kind of search scenario.</p>
-                                    <p>Default value: No</p>
-                                ]]>
-                            </comment>
-                            <depends><enable>1</enable></depends>
-                        </push_initial_search>
-                    </fields>
-                </analytics>
                 <synonyms translate="label">
                     <label>Synonyms</label>
                     <expanded>0</expanded>
@@ -1093,8 +972,7 @@
                                 Documentation: <a href="https://docs.meilisearch.com/reference/api/settings.html#synonyms" target="_blank">https://docs.meilisearch.com/reference/api/settings.html#synonyms</a>
                                    <br>
                                 <br>
-                                    Meilisearch offers more synonymys’ types - placeholders and alternative corrections. These types can be managed directly from your <a href="https://docs.meilisearch.com/" target="_blank">Meilisearch’s dashboard</a>.
-                                    Any changes you will make to placeholders and alternative corrections in Meilisearch’s dashboard won’t be overriden.
+                                    You can also manage synonyms directly from the Meilisearch dashboard or via the API.
                                 ]]>
                             </comment>
                         </oneway_synonyms>
@@ -1112,7 +990,7 @@
                                 <![CDATA[
                                     If you have large amount of synonyms (appr. more than hundred), you don't have to fill it into inputs above and you can upload a JSON file with synonyms instead.
                                     The documentation with the file structure can be found <a href="https://docs.meilisearch.com/reference/api/settings.html#synonyms" target="_blank">here</a>.<br><br>
-                                    <span class="meilisearch-config-warning">&#9888;</span>
+                                    &#9888;
                                     When you upload a JSON file, all the synonyms settings from above will be ignored and only synonyms from the JSON file will be pushed to Meilisearch.
                                 ]]>
                             </comment>
@@ -1128,35 +1006,6 @@
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
                     <fields>
-                        <remove_words_if_no_result translate="label comment">
-                            <label>Remove Words If No Result?</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>meilisearch_search/system_removewords</source_model>
-                            <sort_order>1</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Optional property to avoid empty result pages.<br/>
-                             By default, Meilisearch performs "AND" queries, which can lead to no results pages when queries are too long or too detailed. To avoid this, you can select among the following options:<br/>
-                             LastWords: when a query does not return any result, the last word will be considered as optional and the query will be automatically performed again (the process is repeated with the n-1 word, n-2 word, ... until there is results).<br/>
-                             FirstWords: when a query does not return any result, the first word will be considered as optional and the query will be automatically performed again (the process is repeated with the second word, third word, ... until there is results).<br/>
-                             allOptional: when a query does not return any result, all words will be optional.<br/>
-                             None: No specific processing is done when a query does not return any result. <br/>]]></comment>
-                        </remove_words_if_no_result>
-                        <partial_update translate="label">
-                            <label>Partial Updates</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>10</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>
-                                <![CDATA[
-                                If enabled, all add/update operations will use <code>partialUpdateObjects</code> instead of <code>addObjects</code>. You should enable this option if you update some attributes of your records from an external source in addition to Magento to avoid any overriding.
-                                ]]>
-                            </comment>
-                        </partial_update>
                         <customer_groups_enable translate="label">
                             <label>Customer Groups</label>
                             <frontend_type>select</frontend_type>
@@ -1181,17 +1030,6 @@
                             <show_in_store>1</show_in_store>
                             <comment>Choose if a query to Meilisearch is done by the backend for SEO when instant search is enabled</comment>
                         </make_seo_request>
-                        <remove_branding translate="label comment">
-                            <label>Remove branding logo</label>
-                            <frontend_type>select</frontend_type>
-                            <frontend_model>meilisearch_search/system_config_form_field_logo</frontend_model>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>40</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>Choose here if the meilisearch logo is added to the drop-down template.</comment>
-                        </remove_branding>
                         <show_queue_notification translate="label comment">
                             <label>Show queue information panel in administration header</label>
                             <frontend_type>select</frontend_type>
@@ -1252,7 +1090,7 @@
                             <show_in_store>1</show_in_store>
                             <comment>
                                 <![CDATA[
-                                <span class="meilisearch-config-warning">&#9888;</span>
+                                &#9888;
                                 By preventing your store from backend rendering you might break your SEO and accessibility of your store by search crawlers. Please, read documentation before you turn the backend rendering off:
                                 Prevent Backend Rendering can improve SEO and performance
                                 ]]>
@@ -1316,12 +1154,12 @@
 
                         <p>
                         To set an extra settings, please fill the right textarea with JSON where you specify the extra settings.<br />
-                        Example: <code>{"exactOnSingleWordQuery":"word"}</code>
+                        Example: <code>{"typoTolerance": {"enabled": true}}</code>
                         </p>
 
                         <p>List of possible settings: <a href="https://docs.meilisearch.com/reference/api/settings.html" target="_blank">https://docs.meilisearch.com/reference/api/settings.html</a></p>
 
-                        <p><span class="meilisearch-config-warning">&#9888;</span> Edit extra settings only when you're sure what you're doing. Bad settings can effect your search functionality and have a bad impact on your relevance.</p>
+                        <p>&#9888; Edit extra settings only when you're sure what you're doing. Bad settings can effect your search functionality and have a bad impact on your relevance.</p>
                         ]]>
                     </comment>
                     <fields>

@@ -2,7 +2,7 @@
 
 class Meilisearch_Search_Model_Indexer_Meilisearchadditionalsections extends Meilisearch_Search_Model_Indexer_Abstract
 {
-    const EVENT_MATCH_RESULT_KEY = 'meilisearch_match_result';
+    public const EVENT_MATCH_RESULT_KEY = 'meilisearch_match_result';
 
     /** @var Meilisearch_Search_Model_Resource_Engine */
     protected $engine;
@@ -18,8 +18,9 @@ class Meilisearch_Search_Model_Indexer_Meilisearchadditionalsections extends Mei
         $this->config = Mage::helper('meilisearch_search/config');
     }
 
-    protected $_matchedEntities = array();
+    protected $_matchedEntities = [];
 
+    #[\Override]
     protected function _getResource()
     {
         return Mage::getResourceSingleton('catalogsearch/indexer_fulltext');
@@ -30,15 +31,17 @@ class Meilisearch_Search_Model_Indexer_Meilisearchadditionalsections extends Mei
         return Mage::helper('meilisearch_search')->__('Meilisearch Search Additional autocomplete sections');
     }
 
+    #[\Override]
     public function getDescription()
     {
         /** @var Meilisearch_Search_Helper_Data $helper */
         $helper = Mage::helper('meilisearch_search');
-        $decription = $helper->__('Rebuild additional sections.').' '.$helper->__($this->enableQueueMsg);
+        $decription = $helper->__('Rebuild additional sections.') . ' ' . $helper->__($this->enableQueueMsg);
 
         return $decription;
     }
 
+    #[\Override]
     public function matchEvent(Mage_Index_Model_Event $event)
     {
         return false;
@@ -59,13 +62,12 @@ class Meilisearch_Search_Model_Indexer_Meilisearchadditionalsections extends Mei
         return $this;
     }
 
-    protected function _processEvent(Mage_Index_Model_Event $event)
-    {
-    }
+    protected function _processEvent(Mage_Index_Model_Event $event) {}
 
     /**
      * Rebuild all index data.
      */
+    #[\Override]
     public function reindexAll()
     {
         if ($this->config->isModuleOutputEnabled() === false) {

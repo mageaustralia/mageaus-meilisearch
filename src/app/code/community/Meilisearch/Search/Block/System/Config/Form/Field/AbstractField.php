@@ -3,7 +3,7 @@
 abstract class Meilisearch_Search_Block_System_Config_Form_Field_AbstractField extends Mage_Adminhtml_Block_System_Config_Form_Field_Array_Abstract
 {
     protected $settings;
-    protected $selectFields = array();
+    protected $selectFields = [];
 
     public function __construct()
     {
@@ -12,7 +12,7 @@ abstract class Meilisearch_Search_Block_System_Config_Form_Field_AbstractField e
         }
 
         foreach ($this->settings['columns'] as $columnName => $columnSettings) {
-            $fieldSettings = array();
+            $fieldSettings = [];
 
             if (isset($columnSettings['label'])) {
                 $fieldSettings['label'] = Mage::helper('adminhtml')->__($columnSettings['label']);
@@ -39,6 +39,7 @@ abstract class Meilisearch_Search_Block_System_Config_Form_Field_AbstractField e
         parent::__construct();
     }
 
+    #[\Override]
     protected function _prepareArrayRow(Varien_Object $row)
     {
         foreach ($this->settings['columns'] as $columnName => $columnSettings) {
@@ -46,7 +47,7 @@ abstract class Meilisearch_Search_Block_System_Config_Form_Field_AbstractField e
                 continue;
             }
 
-            $row->setData('option_extra_attr_'.$this->getRenderer($columnName, $columnSettings)->calcOptionHash($row->{$columnSettings['rowMethod']}()), 'selected="selected"');
+            $row->setData('option_extra_attr_' . $this->getRenderer($columnName, $columnSettings)->calcOptionHash($row->{$columnSettings['rowMethod']}()), 'selected="selected"');
         }
     }
 
@@ -81,7 +82,7 @@ abstract class Meilisearch_Search_Block_System_Config_Form_Field_AbstractField e
 
         $selectField->setIsRenderToJsTemplate(true);
         $selectField->setOptions($options);
-        $selectField->setExtraParams('style="width:'.$width.'px;"');
+        $selectField->setExtraParams('style="width:' . $width . 'px;"');
 
         if (isset($columnSettings['disabled']) && $columnSettings['disabled'] != 0) {
             $extra = $selectField->getExtraParams();

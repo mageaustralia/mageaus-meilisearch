@@ -1,15 +1,16 @@
 <?php
+
 /** @var Mage_Core_Model_Resource_Setup $installer */
 $installer = $this;
 $installer->startSetup();
 
 $tableName = $installer->getTable('meilisearch_search/queue');
 
-$installer->getConnection()->addColumn($tableName, 'locked_at', array(
+$installer->getConnection()->addColumn($tableName, 'locked_at', [
     'type' => Varien_Db_Ddl_Table::TYPE_DATETIME,
     'after' => 'job_id',
     'nullable' => true,
     'comment' => 'Time of job creation',
-));
+]);
 
 $installer->endSetup();

@@ -14,6 +14,13 @@
                     <frontName>meilisearch</frontName>
                 </args>
             </meilisearch>
+            <meilisearch_ajax>
+                <use>standard</use>
+                <args>
+                    <module>Meilisearch_Search</module>
+                    <frontName>msearchtrack</frontName>
+                </args>
+            </meilisearch_ajax>
         </routers>
         <layout>
             <updates>
@@ -161,6 +168,18 @@
             <!-- Click & Conversion Analytics observers removed - was Algolia-specific -->
 
         </events>
+        <crontab>
+            <jobs>
+                <meilisearch_rebuild_suggestions>
+                    <schedule>
+                        <cron_expr>0 3 * * *</cron_expr>
+                    </schedule>
+                    <run>
+                        <model>meilisearch_search/observer::cronRebuildSuggestions</model>
+                    </run>
+                </meilisearch_rebuild_suggestions>
+            </jobs>
+        </crontab>
         <resources>
             <meilisearch_setup>
                 <setup>
@@ -191,9 +210,9 @@
                 <meilisearch_queue_runner>
                     <model>meilisearch_search/indexer_meilisearchqueuerunner</model>
                 </meilisearch_queue_runner>
-                <meilisearch_delete_products>
-                    <model>meilisearch_search/indexer_meilisearchdeleteproducts</model>
-                </meilisearch_delete_products>
+                <meilisearch_barcodes>
+                    <model>meilisearch_search/indexer_meilisearchbarcodes</model>
+                </meilisearch_barcodes>
             </indexer>
         </index>
         <fieldsets>

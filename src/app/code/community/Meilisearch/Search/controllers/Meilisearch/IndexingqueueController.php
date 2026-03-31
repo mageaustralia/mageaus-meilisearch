@@ -1,7 +1,8 @@
 <?php
+
 /**
  * MeiliSearch Indexing Queue Controller
- * 
+ *
  * @category    Meilisearch
  * @package     Meilisearch_Search
  * @copyright   Copyright (c) 2025 Maho (https://mahocommerce.com)
@@ -16,20 +17,20 @@ class Meilisearch_Search_Meilisearch_IndexingqueueController extends Mage_Adminh
     protected function _initAction()
     {
         $this->_checkQueueIsActivated();
-        
+
         $this->loadLayout()
             ->_setActiveMenu('system/meilisearch/indexing_queue')
             ->_addBreadcrumb(
                 Mage::helper('meilisearch_search')->__('System'),
-                Mage::helper('meilisearch_search')->__('System')
+                Mage::helper('meilisearch_search')->__('System'),
             )
             ->_addBreadcrumb(
                 Mage::helper('meilisearch_search')->__('MeiliSearch Search'),
-                Mage::helper('meilisearch_search')->__('MeiliSearch Search')
+                Mage::helper('meilisearch_search')->__('MeiliSearch Search'),
             )
             ->_addBreadcrumb(
                 Mage::helper('meilisearch_search')->__('Indexing Queue'),
-                Mage::helper('meilisearch_search')->__('Indexing Queue')
+                Mage::helper('meilisearch_search')->__('Indexing Queue'),
             );
         return $this;
     }
@@ -39,6 +40,7 @@ class Meilisearch_Search_Meilisearch_IndexingqueueController extends Mage_Adminh
      *
      * @return Mage_Adminhtml_Controller_Action
      */
+    #[\Override]
     public function preDispatch()
     {
         return parent::preDispatch();
@@ -75,7 +77,7 @@ class Meilisearch_Search_Meilisearch_IndexingqueueController extends Mage_Adminh
             $this->renderLayout();
         } else {
             Mage::getSingleton('adminhtml/session')->addError(
-                Mage::helper('meilisearch_search')->__('Queue item does not exist')
+                Mage::helper('meilisearch_search')->__('Queue item does not exist'),
             );
             $this->_redirect('*/*/');
         }
@@ -89,10 +91,10 @@ class Meilisearch_Search_Meilisearch_IndexingqueueController extends Mage_Adminh
     protected function _checkQueueIsActivated()
     {
         $config = Mage::helper('meilisearch_search/config');
-        
+
         if (!$config->isQueueActive()) {
-            $message = 'Queue processing is disabled. To activate it, please go to <a href="' 
-                     . $this->getUrl('adminhtml/system_config/edit/section/meilisearch/') 
+            $message = 'Queue processing is disabled. To activate it, please go to <a href="'
+                     . $this->getUrl('adminhtml/system_config/edit/section/meilisearch/')
                      . '">MeiliSearch configuration</a> and enable queue.';
             Mage::getSingleton('adminhtml/session')->addNotice($message);
         }
@@ -103,6 +105,7 @@ class Meilisearch_Search_Meilisearch_IndexingqueueController extends Mage_Adminh
      *
      * @return bool
      */
+    #[\Override]
     protected function _isAllowed()
     {
         return Mage::getSingleton('admin/session')->isAllowed('system/meilisearch/indexing_queue');

@@ -2,110 +2,91 @@
 
 class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 {
-    const MINIMAL_QUERY_LENGTH = 'meilisearch/ui/minimal_query_length';
-    const SEARCH_DELAY = 'meilisearch/ui/search_delay';
+    public const MINIMAL_QUERY_LENGTH = 'meilisearch/ui/minimal_query_length';
+    public const SEARCH_DELAY = 'meilisearch/ui/search_delay';
 
-    const ENABLE_FRONTEND = 'meilisearch/credentials/enable_frontend';
-    const ENABLE_BACKEND = 'meilisearch/credentials/enable_backend';
-    const IS_POPUP_ENABLED = 'meilisearch/credentials/is_popup_enabled';
-    const SERVER_URL = 'meilisearch/credentials/server_url';
-    const SEARCH_RESULTS_URL = 'meilisearch/credentials/search_results_url';
-    const API_KEY = 'meilisearch/credentials/api_key';
-    const SEARCH_ONLY_API_KEY = 'meilisearch/credentials/search_only_api_key';
-    const INDEX_PREFIX = 'meilisearch/credentials/index_prefix';
-    
-    // Keep APPLICATION_ID for backward compatibility
-    const APPLICATION_ID = 'meilisearch/credentials/application_id';
-    const IS_INSTANT_ENABLED = 'meilisearch/credentials/is_instant_enabled';
-    const USE_ADAPTIVE_IMAGE = 'meilisearch/credentials/use_adaptive_image';
+    public const ENABLE_FRONTEND = 'meilisearch/credentials/enable_frontend';
+    public const ENABLE_BACKEND = 'meilisearch/credentials/enable_backend';
+    public const IS_POPUP_ENABLED = 'meilisearch/credentials/is_popup_enabled';
+    public const SERVER_URL = 'meilisearch/credentials/server_url';
+    public const SEARCH_RESULTS_URL = 'meilisearch/credentials/search_results_url';
+    public const API_KEY = 'meilisearch/credentials/api_key';
+    public const SEARCH_ONLY_API_KEY = 'meilisearch/credentials/search_only_api_key';
+    public const INDEX_PREFIX = 'meilisearch/credentials/index_prefix';
 
-    const REPLACE_CATEGORIES = 'meilisearch/instant/replace_categories';
-    const INSTANT_SELECTOR = 'meilisearch/instant/instant_selector';
-    const FACETS = 'meilisearch/instant/facets';
-    const MAX_VALUES_PER_FACET = 'meilisearch/instant/max_values_per_facet';
-    const SORTING_INDICES = 'meilisearch/instant/sorts';
-    const XML_ADD_TO_CART_ENABLE = 'meilisearch/instant/add_to_cart_enable';
-    const INFINITE_SCROLL_ENABLE = 'meilisearch/instant/infinite_scroll_enable';
+    public const IS_INSTANT_ENABLED = 'meilisearch/credentials/is_instant_enabled';
+    public const USE_ADAPTIVE_IMAGE = 'meilisearch/credentials/use_adaptive_image';
 
-    const NB_OF_PRODUCTS_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_products_suggestions';
-    const NB_OF_CATEGORIES_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_categories_suggestions';
-    const NB_OF_QUERIES_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_queries_suggestions';
-    const NB_OF_PAGES_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_pages_suggestions';
-    const AUTOCOMPLETE_SECTIONS = 'meilisearch/autocomplete/sections';
-    const EXCLUDED_PAGES = 'meilisearch/autocomplete/excluded_pages';
-    const MIN_POPULARITY = 'meilisearch/autocomplete/min_popularity';
-    const MIN_NUMBER_OF_RESULTS = 'meilisearch/autocomplete/min_number_of_results';
-    const DISPLAY_SUGGESTIONS_CATEGORIES = 'meilisearch/autocomplete/display_categories_with_suggestions';
-    const RENDER_TEMPLATE_DIRECTIVES = 'meilisearch/autocomplete/render_template_directives';
-    const AUTOCOMPLETE_MENU_DEBUG = 'meilisearch/autocomplete/debug';
+    public const REPLACE_CATEGORIES = 'meilisearch/instant/replace_categories';
+    public const INSTANT_SELECTOR = 'meilisearch/instant/instant_selector';
+    public const FACETS = 'meilisearch/instant/facets';
+    public const SORTING_INDICES = 'meilisearch/instant/sorts';
+    public const XML_ADD_TO_CART_ENABLE = 'meilisearch/instant/add_to_cart_enable';
+    public const INFINITE_SCROLL_ENABLE = 'meilisearch/instant/infinite_scroll_enable';
 
-    const NUMBER_OF_PRODUCT_RESULTS = 'meilisearch/products/number_product_results';
-    const PRODUCT_ATTRIBUTES = 'meilisearch/products/product_additional_attributes';
-    const PRODUCT_CUSTOM_RANKING = 'meilisearch/products/custom_ranking_product_attributes';
-    const RESULTS_LIMIT = 'meilisearch/products/results_limit';
-    const SHOW_SUGGESTIONS_NO_RESULTS = 'meilisearch/products/show_suggestions_on_no_result_page';
-    const INDEX_VISIBILITY = 'meilisearch/products/index_visibility';
-    const INDEX_OUT_OF_STOCK_OPTIONS = 'meilisearch/products/index_out_of_stock_options';
-    const INDEX_WHOLE_CATEGORY_TREE = 'meilisearch/products/index_whole_category_tree';
+    public const NB_OF_PRODUCTS_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_products_suggestions';
+    public const NB_OF_CATEGORIES_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_categories_suggestions';
+    public const NB_OF_QUERIES_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_queries_suggestions';
+    public const NB_OF_PAGES_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_pages_suggestions';
+    public const AUTOCOMPLETE_SECTIONS = 'meilisearch/autocomplete/sections';
+    public const EXCLUDED_PAGES = 'meilisearch/autocomplete/excluded_pages';
+    public const MIN_POPULARITY = 'meilisearch/autocomplete/min_popularity';
+    public const MIN_NUMBER_OF_RESULTS = 'meilisearch/autocomplete/min_number_of_results';
+    public const DISPLAY_SUGGESTIONS_CATEGORIES = 'meilisearch/autocomplete/display_categories_with_suggestions';
+    public const RENDER_TEMPLATE_DIRECTIVES = 'meilisearch/autocomplete/render_template_directives';
+    public const AUTOCOMPLETE_MENU_DEBUG = 'meilisearch/autocomplete/debug';
 
-    const CATEGORY_ATTRIBUTES = 'meilisearch/categories/category_additional_attributes2';
-    const INDEX_PRODUCT_COUNT = 'meilisearch/categories/index_product_count';
-    const CATEGORY_CUSTOM_RANKING = 'meilisearch/categories/custom_ranking_category_attributes';
-    const SHOW_CATS_NOT_INCLUDED_IN_NAVIGATION = 'meilisearch/categories/show_cats_not_included_in_navigation';
-    const INDEX_EMPTY_CATEGORIES = 'meilisearch/categories/index_empty_categories';
+    public const NUMBER_OF_PRODUCT_RESULTS = 'meilisearch/products/number_product_results';
+    public const PRODUCT_ATTRIBUTES = 'meilisearch/products/product_additional_attributes';
+    public const PRODUCT_CUSTOM_RANKING = 'meilisearch/products/custom_ranking_product_attributes';
+    public const RESULTS_LIMIT = 'meilisearch/products/results_limit';
+    public const SHOW_SUGGESTIONS_NO_RESULTS = 'meilisearch/products/show_suggestions_on_no_result_page';
+    public const INDEX_VISIBILITY = 'meilisearch/products/index_visibility';
+    public const INDEX_OUT_OF_STOCK_OPTIONS = 'meilisearch/products/index_out_of_stock_options';
+    public const INDEX_WHOLE_CATEGORY_TREE = 'meilisearch/products/index_whole_category_tree';
 
-    const IS_ACTIVE = 'meilisearch/queue/active';
-    const NUMBER_OF_ELEMENT_BY_PAGE = 'meilisearch/queue/number_of_element_by_page';
-    const NUMBER_OF_JOB_TO_RUN = 'meilisearch/queue/number_of_job_to_run';
-    const RETRY_LIMIT = 'meilisearch/queue/number_of_retries';
-    const CHECK_PRICE_INDEX = 'meilisearch/queue/check_price_index';
-    const CHECK_STOCK_INDEX = 'meilisearch/queue/check_stock_index';
+    public const CATEGORY_ATTRIBUTES = 'meilisearch/categories/category_additional_attributes2';
+    public const CATEGORY_CUSTOM_RANKING = 'meilisearch/categories/custom_ranking_category_attributes';
+    public const SHOW_CATS_NOT_INCLUDED_IN_NAVIGATION = 'meilisearch/categories/show_cats_not_included_in_navigation';
+    public const INDEX_EMPTY_CATEGORIES = 'meilisearch/categories/index_empty_categories';
 
-    const XML_PATH_IMAGE_WIDTH = 'meilisearch/image/width';
-    const XML_PATH_IMAGE_HEIGHT = 'meilisearch/image/height';
-    const XML_PATH_IMAGE_TYPE = 'meilisearch/image/type';
-    const XML_PATH_PREFIX = 'meilisearch/';
+    public const IS_ACTIVE = 'meilisearch/queue/active';
+    public const NUMBER_OF_ELEMENT_BY_PAGE = 'meilisearch/queue/number_of_element_by_page';
+    public const NUMBER_OF_JOB_TO_RUN = 'meilisearch/queue/number_of_job_to_run';
+    public const RETRY_LIMIT = 'meilisearch/queue/number_of_retries';
+    public const CHECK_PRICE_INDEX = 'meilisearch/queue/check_price_index';
+    public const CHECK_STOCK_INDEX = 'meilisearch/queue/check_stock_index';
 
-    const GA_ENABLE = 'meilisearch/analytics/enable';
-    const GA_DELAY = 'meilisearch/analytics/delay';
-    const GA_TRIGGER_ON_UI_INTERACTION = 'meilisearch/analytics/trigger_on_ui_interaction';
-    const GA_PUSH_INITIAL_SEARCH = 'meilisearch/analytics/push_initial_search';
+    public const XML_PATH_IMAGE_WIDTH = 'meilisearch/image/width';
+    public const XML_PATH_IMAGE_HEIGHT = 'meilisearch/image/height';
+    public const XML_PATH_IMAGE_TYPE = 'meilisearch/image/type';
+    public const XML_PATH_PREFIX = 'meilisearch/';
 
-    // Click & Conversion Analytics constants removed - was Algolia-specific
+    public const ENABLE_SYNONYMS = 'meilisearch/synonyms/enable_synonyms';
+    public const SYNONYMS = 'meilisearch/synonyms/synonyms';
+    public const ONEWAY_SYNONYMS = 'meilisearch/synonyms/oneway_synonyms';
+    public const SYNONYMS_FILE = 'meilisearch/synonyms/synonyms_file';
 
-    const ENABLE_SYNONYMS = 'meilisearch/synonyms/enable_synonyms';
-    const SYNONYMS = 'meilisearch/synonyms/synonyms';
-    const ONEWAY_SYNONYMS = 'meilisearch/synonyms/oneway_synonyms';
-    const SYNONYMS_FILE = 'meilisearch/synonyms/synonyms_file';
+    public const CUSTOMER_GROUPS_ENABLE = 'meilisearch/advanced/customer_groups_enable';
+    public const MAKE_SEO_REQUEST = 'meilisearch/advanced/make_seo_request';
+    public const SHOW_QUEUE_NOTIFICATION = 'meilisearch/advanced/show_queue_notification';
+    public const AUTOCOMPLETE_SELECTOR = 'meilisearch/advanced/autocomplete_selector';
+    public const INDEX_PRODUCT_ON_CATEGORY_PRODUCTS_UPDATE = 'meilisearch/advanced/index_product_on_category_products_update';
+    public const INDEX_ALL_CATEGORY_PRODUCTS_ON_CATEGORY_UPDATE = 'meilisearch/advanced/index_all_category_product_on_category_update';
+    public const PREVENT_BACKEND_RENDERING = 'meilisearch/advanced/prevent_backend_rendering';
+    public const PREVENT_BACKEND_RENDERING_DISPLAY_MODE = 'meilisearch/advanced/prevent_backend_rendering_display_mode';
+    public const BACKEND_RENDERING_ALLOWED_USER_AGENTS = 'meilisearch/advanced/backend_rendering_allowed_user_agents';
+    public const NON_CASTABLE_ATTRIBUTES = 'meilisearch/advanced/non_castable_attributes';
+    public const SHOW_OUT_OF_STOCK = 'cataloginventory/options/show_out_of_stock';
+    public const LOGGING_ENABLED = 'meilisearch/credentials/debug';
 
-    const REMOVE_IF_NO_RESULT = 'meilisearch/advanced/remove_words_if_no_result';
-    const PARTIAL_UPDATES = 'meilisearch/advanced/partial_update';
-    const CUSTOMER_GROUPS_ENABLE = 'meilisearch/advanced/customer_groups_enable';
-    const MAKE_SEO_REQUEST = 'meilisearch/advanced/make_seo_request';
-    const REMOVE_BRANDING = 'meilisearch/advanced/remove_branding';
-    const SHOW_QUEUE_NOTIFICATION = 'meilisearch/advanced/show_queue_notification';
-    const AUTOCOMPLETE_SELECTOR = 'meilisearch/advanced/autocomplete_selector';
-    const INDEX_PRODUCT_ON_CATEGORY_PRODUCTS_UPDATE = 'meilisearch/advanced/index_product_on_category_products_update';
-    const INDEX_ALL_CATEGORY_PRODUCTS_ON_CATEGORY_UPDATE = 'meilisearch/advanced/index_all_category_product_on_category_update';
-    const PREVENT_BACKEND_RENDERING = 'meilisearch/advanced/prevent_backend_rendering';
-    const PREVENT_BACKEND_RENDERING_DISPLAY_MODE = 'meilisearch/advanced/prevent_backend_rendering_display_mode';
-    const BACKEND_RENDERING_ALLOWED_USER_AGENTS = 'meilisearch/advanced/backend_rendering_allowed_user_agents';
-    const NON_CASTABLE_ATTRIBUTES = 'meilisearch/advanced/non_castable_attributes';
-    const MAX_RECORD_SIZE_LIMIT = 'meilisearch/advanced/max_record_size_limit';
+    public const EXTRA_SETTINGS_PRODUCTS = 'meilisearch/advanced_settings/products_extra_settings';
+    public const EXTRA_SETTINGS_CATEGORIES = 'meilisearch/advanced_settings/categories_extra_settings';
+    public const EXTRA_SETTINGS_PAGES = 'meilisearch/advanced_settings/pages_extra_settings';
+    public const EXTRA_SETTINGS_SUGGESTIONS = 'meilisearch/advanced_settings/suggestions_extra_settings';
+    public const EXTRA_SETTINGS_ADDITIONAL_SECTIONS = 'meilisearch/advanced_settings/additional_sections_extra_settings';
 
-    const SHOW_OUT_OF_STOCK = 'cataloginventory/options/show_out_of_stock';
-    const LOGGING_ENABLED = 'meilisearch/credentials/debug';
-
-    const EXTRA_SETTINGS_PRODUCTS = 'meilisearch/advanced_settings/products_extra_settings';
-    const EXTRA_SETTINGS_CATEGORIES = 'meilisearch/advanced_settings/categories_extra_settings';
-    const EXTRA_SETTINGS_PAGES = 'meilisearch/advanced_settings/pages_extra_settings';
-    const EXTRA_SETTINGS_SUGGESTIONS = 'meilisearch/advanced_settings/suggestions_extra_settings';
-    const EXTRA_SETTINGS_ADDITIONAL_SECTIONS = 'meilisearch/advanced_settings/additional_sections_extra_settings';
-
-    const DEFAULT_MAX_RECORD_SIZE = 10000;
-
-    protected $_productTypeMap = array();
-    protected $_maxRecordSize;
+    protected $_productTypeMap = [];
 
     public function indexVisibility($storeId = null)
     {
@@ -237,18 +218,13 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
         return Mage::getStoreConfigFlag(self::CUSTOMER_GROUPS_ENABLE, $storeId);
     }
 
-    public function isPartialUpdateEnabled($storeId = null)
-    {
-        return Mage::getStoreConfigFlag(self::PARTIAL_UPDATES, $storeId);
-    }
-
     /**
      * Safe unserialize method that tries multiple formats
      */
     private function safeUnserialize($data, $context = 'unknown')
     {
         if ($data === null || $data === '') {
-            return array();
+            return [];
         }
 
         try {
@@ -263,17 +239,17 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 
         try {
             // Fallback to JSON decode
-            $decoded = json_decode($data, true);
+            $decoded = json_decode((string) $data, true);
             if (json_last_error() === JSON_ERROR_NONE) {
                 return $decoded;
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             // Continue to error handling
         }
 
         // Log the error and return empty array
-        Mage::log("Failed to unserialize $context config: " . $data, Zend_Log::WARN);
-        return array();
+        Mage::log("Failed to unserialize $context config: " . $data, Mage::LOG_WARNING);
+        return [];
     }
 
     public function getAutocompleteSections($storeId = null)
@@ -283,7 +259,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 
         if (is_array($attrs)) {
             // Filter out sections for modules that aren't installed
-            $validSections = array();
+            $validSections = [];
             foreach ($attrs as $section) {
                 // Check if this is amasty_pages and if Amasty Shopby is installed
                 if (isset($section['name']) && $section['name'] === 'amasty_pages') {
@@ -296,15 +272,15 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             return array_values($validSections);
         }
 
-        return array();
+        return [];
     }
-    
+
     /**
      * Check if Amasty Shopby module is installed and active
      */
     protected function isAmastyShopbyInstalled()
     {
-        $modules = (array)Mage::getConfig()->getNode('modules')->children();
+        $modules = (array) Mage::getConfig()->getNode('modules')->children();
         return isset($modules['Amasty_Shopby']) && $modules['Amasty_Shopby']->is('active');
     }
 
@@ -329,19 +305,9 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             && Mage::getStoreConfigFlag(self::INFINITE_SCROLL_ENABLE, $storeId);
     }
 
-    public function isRemoveBranding($storeId = null)
-    {
-        return Mage::getStoreConfigFlag(self::REMOVE_BRANDING, $storeId);
-    }
-
     public function showQueueNotificiation($storeId = null)
     {
         return Mage::getStoreConfigFlag(self::SHOW_QUEUE_NOTIFICATION, $storeId);
-    }
-
-    public function getMaxValuesPerFacet($storeId = null)
-    {
-        return Mage::getStoreConfig(self::MAX_VALUES_PER_FACET, $storeId);
     }
 
     public function getNumberOfElementByPage($storeId = null)
@@ -372,11 +338,6 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
     public function getRetryLimit($storeId = null)
     {
         return (int) Mage::getStoreConfig(self::RETRY_LIMIT, $storeId);
-    }
-
-    public function getRemoveWordsIfNoResult($storeId = null)
-    {
-        return Mage::getStoreConfig(self::REMOVE_IF_NO_RESULT, $storeId);
     }
 
     public function getNumberOfProductResults($storeId = null)
@@ -428,7 +389,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             return $attrs;
         }
 
-        return array();
+        return [];
     }
 
     public function getRenderTemplateDirectives($storeId = null)
@@ -455,18 +416,18 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 
         foreach ($attrs as &$attr) {
             if ($this->isCustomerGroupsEnabled($storeId)) {
-                if (strpos($attr['attribute'], 'price') !== false) {
-                    $suffix_index_name = 'group_'.$group_id;
+                if (str_contains((string) $attr['attribute'], 'price')) {
+                    $suffix_index_name = 'group_' . $group_id;
 
-                    $attr['name'] = $product_helper->getIndexName($storeId).'_'.$attr['attribute'].'_'.$suffix_index_name.'_'.$attr['sort'];
+                    $attr['name'] = $product_helper->getIndexName($storeId) . '_' . $attr['attribute'] . '_' . $suffix_index_name . '_' . $attr['sort'];
                 } else {
-                    $attr['name'] = $product_helper->getIndexName($storeId).'_'.$attr['attribute'].'_'.$attr['sort'];
+                    $attr['name'] = $product_helper->getIndexName($storeId) . '_' . $attr['attribute'] . '_' . $attr['sort'];
                 }
             } else {
-                if (strpos($attr['attribute'], 'price') !== false) {
-                    $attr['name'] = $product_helper->getIndexName($storeId).'_'.$attr['attribute'].'_'.'default'.'_'.$attr['sort'];
+                if (str_contains((string) $attr['attribute'], 'price')) {
+                    $attr['name'] = $product_helper->getIndexName($storeId) . '_' . $attr['attribute'] . '_' . 'default' . '_' . $attr['sort'];
                 } else {
-                    $attr['name'] = $product_helper->getIndexName($storeId).'_'.$attr['attribute'].'_'.$attr['sort'];
+                    $attr['name'] = $product_helper->getIndexName($storeId) . '_' . $attr['attribute'] . '_' . $attr['sort'];
                 }
             }
         }
@@ -475,67 +436,60 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             return $attrs;
         }
 
-        return array();
+        return [];
     }
 
     public function getServerUrl($storeId = null)
     {
-        return trim(Mage::getStoreConfig(self::SERVER_URL, $storeId));
+        return trim((string) Mage::getStoreConfig(self::SERVER_URL, $storeId));
     }
-    
+
     public function getSearchResultsUrl($storeId = null)
     {
-        $customUrl = trim(Mage::getStoreConfig(self::SEARCH_RESULTS_URL, $storeId));
+        $customUrl = trim((string) Mage::getStoreConfig(self::SEARCH_RESULTS_URL, $storeId));
         return $customUrl ?: '/meilisearch'; // Default to /meilisearch if not configured
-    }
-    
-    public function getApplicationID($storeId = null)
-    {
-        // For backward compatibility, return server URL if APPLICATION_ID is not set
-        $appId = trim(Mage::getStoreConfig(self::APPLICATION_ID, $storeId));
-        return $appId ?: $this->getServerUrl($storeId);
     }
 
     public function getAPIKey($storeId = null)
     {
         $apiKey = Mage::getStoreConfig(self::API_KEY, $storeId);
-        
+
         // Decrypt the API key if it's encrypted
         if ($apiKey) {
             /** @var Mage_Core_Helper_Data $coreHelper */
             $coreHelper = Mage::helper('core');
             $apiKey = $coreHelper->decrypt($apiKey);
         }
-        
+
         return trim($apiKey);
     }
 
     public function getSearchOnlyAPIKey($storeId = null)
     {
         $apiKey = Mage::getStoreConfig(self::SEARCH_ONLY_API_KEY, $storeId);
-        
+
         // Decrypt the API key if it's encrypted
         if ($apiKey) {
             /** @var Mage_Core_Helper_Data $coreHelper */
             $coreHelper = Mage::helper('core');
             $apiKey = $coreHelper->decrypt($apiKey);
         }
-        
+
         return trim($apiKey);
     }
 
     public function getIndexPrefix($storeId = null)
     {
-        return trim(Mage::getStoreConfig(self::INDEX_PREFIX, $storeId));
+        return trim((string) Mage::getStoreConfig(self::INDEX_PREFIX, $storeId));
     }
 
     public function getAttributesToRetrieve($groupId, $store)
     {
         if (false === $this->isCustomerGroupsEnabled()) {
-            return array();
+            return [];
         }
 
-        $attributes = array();
+        $attributes = [];
         foreach ($this->getProductAdditionalAttributes() as $attribute) {
             if ($attribute['attribute'] !== 'price' && $attribute['retrievable'] === '1') {
                 $attributes[] = $attribute['attribute'];
@@ -548,7 +502,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             }
         }
 
-        $attributes = array_merge($attributes, array(
+        $attributes = array_merge($attributes, [
             'objectID',
             'name',
             'url',
@@ -561,7 +515,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             'in_stock',
             'type_id',
             'value', // for additional sections
-        ));
+        ]);
 
         /** @var Mage_Directory_Model_Currency $currencyDirectory */
         $currencyDirectory = Mage::getModel('directory/currency');
@@ -569,7 +523,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 
         /** @var Mage_Tax_Helper_Data $taxHelper */
         $taxHelper = Mage::helper('tax');
-        $priceFields = array('price');
+        $priceFields = ['price'];
 
         if ($taxHelper->getPriceDisplayType($store) == Mage_Tax_Model_Config::DISPLAY_TYPE_BOTH) {
             $priceFields[] = 'price_with_tax';
@@ -577,13 +531,13 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 
         foreach ($priceFields as $price) {
             foreach ($currencies as $currency) {
-                $attributes[] = $price.'.'.$currency.'.default';
-                $attributes[] = $price.'.'.$currency.'.default_formated';
-                $attributes[] = $price.'.'.$currency.'.group_'.$groupId;
-                $attributes[] = $price.'.'.$currency.'.group_'.$groupId.'_formated';
-                $attributes[] = $price.'.'.$currency.'.group_'.$groupId.'_original_formated';
-                $attributes[] = $price.'.'.$currency.'.special_from_date';
-                $attributes[] = $price.'.'.$currency.'.special_to_date';
+                $attributes[] = $price . '.' . $currency . '.default';
+                $attributes[] = $price . '.' . $currency . '.default_formated';
+                $attributes[] = $price . '.' . $currency . '.group_' . $groupId;
+                $attributes[] = $price . '.' . $currency . '.group_' . $groupId . '_formated';
+                $attributes[] = $price . '.' . $currency . '.group_' . $groupId . '_original_formated';
+                $attributes[] = $price . '.' . $currency . '.special_from_date';
+                $attributes[] = $price . '.' . $currency . '.special_to_date';
             }
         }
 
@@ -601,31 +555,29 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             return $attrs;
         }
 
-        return array();
+        return [];
     }
 
     public function getProductAdditionalAttributes($storeId = null)
     {
-        $attributes = array();
+        $attributes = [];
         $config = Mage::getStoreConfig(self::PRODUCT_ATTRIBUTES, $storeId);
         $attributes = $this->safeUnserialize($config, 'product attributes');
 
-        $facets = array();
+        $facets = [];
         $config = Mage::getStoreConfig(self::FACETS, $storeId);
         $facets = $this->safeUnserialize($config, 'facets');
         $attributes = $this->addIndexableAttributes($attributes, $facets, '0');
 
-        $sorts = array();
+        $sorts = [];
         $config = Mage::getStoreConfig(self::SORTING_INDICES, $storeId);
         $sorts = $this->safeUnserialize($config, 'sorting indices');
         $attributes = $this->addIndexableAttributes($attributes, $sorts, '0');
 
-        $customRankings = array();
+        $customRankings = [];
         $config = Mage::getStoreConfig(self::PRODUCT_CUSTOM_RANKING, $storeId);
         $customRankings = $this->safeUnserialize($config, 'product custom ranking');
-        $customRankings = array_filter($customRankings, function ($customRanking) {
-            return $customRanking['attribute'] != 'custom_attribute';
-        });
+        $customRankings = array_filter($customRankings, fn($customRanking) => $customRanking['attribute'] != 'custom_attribute');
         $attributes = $this->addIndexableAttributes($attributes, $customRankings, '0', '0');
 
 
@@ -633,7 +585,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             return $attributes;
         }
 
-        return array();
+        return [];
     }
 
     public function getFacets($storeId = null)
@@ -643,7 +595,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 
         foreach ($attrs as &$attr) {
             if (isset($attr['type']) && $attr['type'] == 'other') {
-                $attr['type'] = isset($attr['other_type']) ? $attr['other_type'] : 'checkbox';
+                $attr['type'] = $attr['other_type'] ?? 'checkbox';
             }
         }
 
@@ -651,7 +603,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             return array_values($attrs);
         }
 
-        return array();
+        return [];
     }
 
     public function getCategoryCustomRanking($storeId = null)
@@ -667,30 +619,30 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
     public function getRankingRules($storeId = null)
     {
         $value = Mage::getStoreConfig(self::XML_PATH_PREFIX . 'products/ranking_rules', $storeId);
-        
+
         if (empty($value)) {
             // Return default MeiliSearch ranking rules
-            return array(
+            return [
                 'words',
                 'typo',
                 'proximity',
                 'attribute',
                 'sort',
-                'exactness'
-            );
+                'exactness',
+            ];
         }
-        
+
         // Parse the textarea value (one rule per line)
-        $rules = explode("\n", $value);
-        $cleanRules = array();
-        
+        $rules = explode("\n", (string) $value);
+        $cleanRules = [];
+
         foreach ($rules as $rule) {
             $rule = trim($rule);
             if (!empty($rule)) {
                 $cleanRules[] = $rule;
             }
         }
-        
+
         return $cleanRules;
     }
 
@@ -705,7 +657,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
     public function getPopularQueries($storeId = null)
     {
         if (!$this->showSuggestionsOnNoResultsPage($storeId)) {
-            return array();
+            return [];
         }
 
         if ($storeId === null) {
@@ -729,7 +681,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
     public function getMappedProductType($originalType)
     {
         if (!isset($this->_productTypeMap[$originalType])) {
-            $mappedType = (string) Mage::app()->getConfig()->getNode('default/meilisearch/product_map/'.$originalType);
+            $mappedType = (string) Mage::app()->getConfig()->getNode('default/meilisearch/product_map/' . $originalType);
 
             if ($mappedType) {
                 $this->_productTypeMap[$originalType] = $mappedType;
@@ -746,28 +698,6 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
         return (string) Mage::getConfig()->getNode()->modules->Meilisearch_Search->version;
     }
 
-    public function isEnabledAnalytics($storeId = null)
-    {
-        return Mage::getStoreConfigFlag(self::GA_ENABLE, $storeId);
-    }
-
-    public function getAnalyticsDelay($storeId = null)
-    {
-        return (int) Mage::getStoreConfig(self::GA_DELAY, $storeId);
-    }
-
-    public function getTriggerOnUIInteraction($storeId = null)
-    {
-        return Mage::getStoreConfigFlag(self::GA_TRIGGER_ON_UI_INTERACTION, $storeId);
-    }
-
-    public function getPushInitialSearch($storeId = null)
-    {
-        return Mage::getStoreConfigFlag(self::GA_PUSH_INITIAL_SEARCH, $storeId);
-    }
-
-    // Click & Conversion Analytics methods removed - was Algolia-specific
-
     public function isEnabledSynonyms($storeId = null)
     {
         return Mage::getStoreConfigFlag(self::ENABLE_SYNONYMS, $storeId);
@@ -775,7 +705,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 
     public function getSynonyms($storeId = null)
     {
-        $synonyms = array();
+        $synonyms = [];
         $config = Mage::getStoreConfig(self::SYNONYMS, $storeId);
         $synonyms = $this->safeUnserialize($config, 'synonyms');
 
@@ -783,12 +713,12 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             return $synonyms;
         }
 
-        return array();
+        return [];
     }
 
     public function getOnewaySynonyms($storeId = null)
     {
-        $onewaySynonyms = array();
+        $onewaySynonyms = [];
         $config = Mage::getStoreConfig(self::ONEWAY_SYNONYMS, $storeId);
         $onewaySynonyms = $this->safeUnserialize($config, 'oneway synonyms');
 
@@ -796,7 +726,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             return $onewaySynonyms;
         }
 
-        return array();
+        return [];
     }
 
     public function getSynonymsFile($storeId = null)
@@ -806,14 +736,14 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             return;
         }
 
-        return Mage::getBaseDir('media').'/meilisearch-admin-config-uploads/'.$filename;
+        return Mage::getBaseDir('media') . '/meilisearch-admin-config-uploads/' . $filename;
     }
 
     public function getExtraSettings($section, $storeId = null)
     {
-        $constant = 'EXTRA_SETTINGS_'.mb_strtoupper($section);
+        $constant = 'EXTRA_SETTINGS_' . mb_strtoupper((string) $section);
 
-        return trim(Mage::getStoreConfig(constant('self::'.$constant), $storeId));
+        return trim((string) Mage::getStoreConfig(constant('self::' . $constant), $storeId));
     }
 
     public function preventBackendRendering($storeId = null)
@@ -824,7 +754,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             return false;
         }
 
-        $userAgent = mb_strtolower($_SERVER['HTTP_USER_AGENT'], 'utf-8');
+        $userAgent = mb_strtolower((string) $_SERVER['HTTP_USER_AGENT'], 'utf-8');
 
         $allowedUserAgents = Mage::getStoreConfig(self::BACKEND_RENDERING_ALLOWED_USER_AGENTS, $storeId);
         $allowedUserAgents = trim($allowedUserAgents);
@@ -837,7 +767,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 
         foreach ($allowedUserAgents as $allowedUserAgent) {
             $allowedUserAgent = mb_strtolower($allowedUserAgent, 'utf-8');
-            if (strpos($userAgent, $allowedUserAgent) !== false) {
+            if (str_contains($userAgent, $allowedUserAgent)) {
                 return false;
             }
         }
@@ -852,7 +782,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 
     public function getNonCastableAttributes($storeId = null)
     {
-        $nonCastableAttributes = array();
+        $nonCastableAttributes = [];
         $config = Mage::getStoreConfig(self::NON_CASTABLE_ATTRIBUTES, $storeId);
         $config = $this->safeUnserialize($config, 'non-castable attributes');
 
@@ -869,7 +799,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 
     private function getCustomRanking($configName, $storeId = null)
     {
-        $attrs = array();
+        $attrs = [];
         $config = Mage::getStoreConfig($configName, $storeId);
         $attrs = $this->safeUnserialize($config, 'custom ranking');
 
@@ -883,7 +813,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
             return $attrs;
         }
 
-        return array();
+        return [];
     }
 
     private function addIndexableAttributes($attributes, $addedAttributes, $searchable = '1', $retrievable = '1', $indexNoValue = '1')
@@ -895,45 +825,15 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
                 }
             }
 
-            $attributes[] = array(
+            $attributes[] = [
                 'attribute'         => $addedAttribute['attribute'],
                 'searchable'        => $searchable,
                 'retrievable'       => $retrievable,
                 'index_no_value'    => $indexNoValue,
-            );
+            ];
         }
 
         return $attributes;
     }
 
-    public function getDefaultMaxRecordSize()
-    {
-        return self::DEFAULT_MAX_RECORD_SIZE;
-    }
-
-    public function getMaxRecordSizeLimit($storeId = null)
-    {
-        if ($this->_maxRecordSize) {
-            return $this->_maxRecordSize;
-        }
-
-        $configValue = Mage::getStoreConfig(self::MAX_RECORD_SIZE_LIMIT, $storeId);
-        if ($configValue) {
-            $this->_maxRecordSize = $configValue;
-
-            return $this->_maxRecordSize;
-        } else {
-            /** @var Meilisearch_Search_Helper_ProxyHelper $proxyHelper */
-            $proxyHelper = Mage::helper('meilisearch_search/proxyHelper');
-            $clientData = $proxyHelper->getClientConfigurationData();
-            if ($clientData && isset($clientData['max_record_size'])) {
-                Mage::getConfig()->saveConfig(self::MAX_RECORD_SIZE_LIMIT, $clientData['max_record_size']);
-                $this->_maxRecordSize = $clientData['max_record_size'];
-            } else {
-                $this->_maxRecordSize = self::getDefaultMaxRecordSize();
-            }
-        }
-
-        return $this->_maxRecordSize;
-    }
 }

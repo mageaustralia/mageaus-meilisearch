@@ -7,12 +7,12 @@ class Meilisearch_Search_Block_System_Config_Form_Field_Sorts extends Meilisearc
 {
     public function __construct()
     {
-        $this->settings = array(
-            'columns' => array(
-                'attribute' => array(
+        $this->settings = [
+            'columns' => [
+                'attribute' => [
                     'label'   => 'Attribute',
                     'options' => function () {
-                        $options = array();
+                        $options = [];
 
                         /** @var Meilisearch_Search_Helper_Entity_Producthelper $product_helper */
                         $product_helper = Mage::helper('meilisearch_search/entity_producthelper');
@@ -25,23 +25,23 @@ class Meilisearch_Search_Block_System_Config_Form_Field_Sorts extends Meilisearc
                     },
                     'rowMethod' => 'getAttribute',
                     'width'     => 160,
-                ),
-                'sort' => array(
+                ],
+                'sort' => [
                     'label'   => 'Sort',
-                    'options' => array(
+                    'options' => [
                         'asc'  => 'Ascending',
                         'desc' => 'Descending',
-                    ),
+                    ],
                     'rowMethod' => 'getSort',
-                ),
-                'label' => array(
+                ],
+                'label' => [
                     'label' => 'Label',
                     'style' => 'width: 200px;',
-                ),
-            ),
+                ],
+            ],
             'buttonLabel' => 'Add Sorting Attribute',
             'addAfter'    => false,
-        );
+        ];
 
         parent::__construct();
     }

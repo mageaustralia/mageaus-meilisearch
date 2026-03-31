@@ -2,7 +2,7 @@
 
 class Meilisearch_Search_Model_Source_JobMethods
 {
-    protected $_methods = array(
+    protected $_methods = [
         'saveSettings' => 'Save Settings',
         'saveConfigurationToMeilisearch' => 'Save Configuration',
         'moveIndex' => 'Move Index',
@@ -18,7 +18,7 @@ class Meilisearch_Search_Model_Source_JobMethods
         'rebuildSuggestionIndex' => 'Sugesstion Reindex',
         'rebuildStorePageIndex' => 'Store Page Reindex',
         'rebuildPageIndex' => 'Page Reindex',
-    );
+    ];
 
     /**
      * @return array
@@ -33,12 +33,12 @@ class Meilisearch_Search_Model_Source_JobMethods
      */
     public function toOptionArray()
     {
-        $options = array();
+        $options = [];
         foreach ($this->_methods as $method => $label) {
-            $option[] = array(
+            $option[] = [
                 'value' => $method,
                 'label' => $label,
-            );
+            ];
         }
         return $options;
     }

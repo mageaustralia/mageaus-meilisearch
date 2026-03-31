@@ -2,6 +2,7 @@
 
 class Meilisearch_Search_Model_System_Config_Backend_ExtraSettings extends Mage_Core_Model_Config_Data
 {
+    #[\Override]
     protected function _beforeSave()
     {
         $value = trim($this->getValue());
@@ -17,7 +18,7 @@ class Meilisearch_Search_Model_System_Config_Backend_ExtraSettings extends Mage_
         $error = json_last_error();
 
         if ($error) {
-            Mage::throwException('JSON provided for "'.$label.'" field is not valid JSON.');
+            Mage::throwException('JSON provided for "' . $label . '" field is not valid JSON.');
         }
 
         return parent::_beforeSave();

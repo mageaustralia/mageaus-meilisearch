@@ -1,7 +1,8 @@
 <?php
+
 /**
  * MeiliSearch Management Controller
- * 
+ *
  * @category    Meilisearch
  * @package     Meilisearch_Search
  * @copyright   Copyright (c) 2025 Maho (https://mahocommerce.com)
@@ -21,7 +22,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
         $this->_setActiveMenu('system/meilisearch/manage');
         $this->renderLayout();
     }
-    
+
     /**
      * Reindex all MeiliSearch indexes
      */
@@ -29,13 +30,13 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
     {
         try {
             // Get all indexers
-            $indexers = array(
+            $indexers = [
                 'meilisearch_search_products',
-                'meilisearch_search_categories', 
+                'meilisearch_search_categories',
                 'meilisearch_search_pages',
-                'meilisearch_search_suggestions'
-            );
-            
+                'meilisearch_search_suggestions',
+            ];
+
             $processed = 0;
             foreach ($indexers as $indexerCode) {
                 $process = Mage::getModel('index/indexer')->getProcessByCode($indexerCode);
@@ -44,19 +45,19 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
                     $processed++;
                 }
             }
-            
+
             Mage::getSingleton('adminhtml/session')->addSuccess(
-                $this->__('Reindexed %d MeiliSearch indexes', $processed)
+                $this->__('Reindexed %d MeiliSearch indexes', $processed),
             );
         } catch (Exception $e) {
             Mage::getSingleton('adminhtml/session')->addError(
-                $this->__('Error reindexing: %s', $e->getMessage())
+                $this->__('Error reindexing: %s', $e->getMessage()),
             );
         }
-        
+
         $this->_redirectReferer();
     }
-    
+
     /**
      * Clear all MeiliSearch indexes
      */
@@ -65,75 +66,76 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
         try {
             $helper = Mage::helper('meilisearch_search/meilisearchhelper');
             $client = $helper->getClient();
-            
+
             if (!$client) {
                 throw new Exception('MeiliSearch client not initialized');
             }
-            
+
             // Get all indexes
             $indexesResponse = $client->getIndexes();
             $indexes = $indexesResponse->toArray();
-            
+
             $deleted = 0;
             $prefix = Mage::helper('meilisearch_search/config')->getIndexPrefix();
-            
+
             foreach ($indexes['results'] as $index) {
                 $indexUid = $index->getUid();
                 // Only delete indexes with our prefix
-                if (empty($prefix) || strpos($indexUid, $prefix) === 0) {
+                if (empty($prefix) || str_starts_with((string) $indexUid, (string) $prefix)) {
                     $client->deleteIndex($indexUid);
                     $deleted++;
                 }
             }
-            
+
             // Also clear the queue
             $queue = Mage::getModel('meilisearch_search/queue');
             $queue->clearQueue(true);
-            
+
             Mage::getSingleton('adminhtml/session')->addSuccess(
-                $this->__('Deleted %d MeiliSearch indexes and cleared the queue', $deleted)
+                $this->__('Deleted %d MeiliSearch indexes and cleared the queue', $deleted),
             );
         } catch (Exception $e) {
             Mage::getSingleton('adminhtml/session')->addError(
-                $this->__('Error clearing indexes: %s', $e->getMessage())
+                $this->__('Error clearing indexes: %s', $e->getMessage()),
             );
         }
-        
+
         $this->_redirectReferer();
     }
-    
+
     /**
      * Delete a single index via AJAX
      */
     public function deleteIndexAction()
     {
         $indexUid = $this->getRequest()->getParam('index');
-        
+
         try {
             $helper = Mage::helper('meilisearch_search/meilisearchhelper');
             $client = $helper->getClient();
-            
+
             if (!$client) {
                 throw new Exception('MeiliSearch client not initialized');
             }
-            
+
             $client->deleteIndex($indexUid);
-            
-            $this->getResponse()->setBody(json_encode(array(
+
+            $this->getResponse()->setBody(json_encode([
                 'success' => true,
-                'message' => $this->__('Index deleted successfully')
-            )));
+                'message' => $this->__('Index deleted successfully'),
+            ]));
         } catch (Exception $e) {
-            $this->getResponse()->setBody(json_encode(array(
+            $this->getResponse()->setBody(json_encode([
                 'success' => false,
-                'message' => $e->getMessage()
-            )));
+                'message' => $e->getMessage(),
+            ]));
         }
     }
-    
+
     /**
      * Check admin permissions
      */
+    #[\Override]
     protected function _isAllowed()
     {
         return Mage::getSingleton('admin/session')->isAllowed('system');

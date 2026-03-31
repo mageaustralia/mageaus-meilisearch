@@ -2,11 +2,11 @@
 
 class Meilisearch_Search_Block_Adminhtml_Indexingqueue_Status extends Mage_Adminhtml_Block_Template
 {
-    const CRON_QUEUE_FREQUENCY = 330;
+    public const CRON_QUEUE_FREQUENCY = 330;
 
-    const QUEUE_NOT_PROCESSED_LIMIT = 3600;
+    public const QUEUE_NOT_PROCESSED_LIMIT = 3600;
 
-    const QUEUE_FAST_LIMIT = 220;
+    public const QUEUE_FAST_LIMIT = 220;
 
     /** @var Meilisearch_Search_Helper_Config */
     protected $config;
@@ -23,6 +23,7 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue_Status extends Mage_Admin
     /**
      * Meilisearch_Search_Model_Indexer_Meilisearchqueuerunner
      */
+    #[\Override]
     protected function _construct()
     {
         parent::_construct();
@@ -81,7 +82,7 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue_Status extends Mage_Admin
      */
     public function getNotices()
     {
-        $notices = array();
+        $notices = [];
 
         if ($this->isQueueStuck()) {
             $notices[] = '<a href="' . $this->getResetQueueUrl() . '"> ' . $this->__('Reset Queue') . '</a>';
@@ -89,11 +90,11 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue_Status extends Mage_Admin
 
         if ($this->isQueueNotProcessed()) {
             $notices[] =  $this->__(
-                'Queue has not been processed for one hour and indexing might be stuck or your cron is not set up properly.'
+                'Queue has not been processed for one hour and indexing might be stuck or your cron is not set up properly.',
             );
             $notices[] =  $this->__(
                 'To help you, please read our <a href="%s" target="_blank">documentation</a>.',
-                'https://docs.meilisearch.com/'
+                'https://docs.meilisearch.com/',
             );
         }
 
@@ -101,7 +102,7 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue_Status extends Mage_Admin
             $notices[] = $this->__('The average processing time of the queue has been performed under 3 minutes.');
             $notices[] = $this->__(
                 'Adding more jobs in the <a href="%s">Indexing Queue configuration</a> would increase the indexing speed.',
-                $this->getUrl('adminhtml/system_config/edit/section/meilisearch_search/')
+                $this->getUrl('adminhtml/system_config/edit/section/meilisearch_search/'),
             );
         }
 
@@ -165,6 +166,7 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue_Status extends Mage_Admin
      *
      * @return string
      */
+    #[\Override]
     protected function _toHtml()
     {
         if ($this->isQueueActive()) {

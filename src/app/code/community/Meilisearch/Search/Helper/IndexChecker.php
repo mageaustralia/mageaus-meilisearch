@@ -29,7 +29,7 @@ class Meilisearch_Search_Helper_IndexChecker extends Mage_Core_Helper_Abstract
         }
 
         if (!is_array($productIds)) {
-            $productIds = array($productIds);
+            $productIds = [$productIds];
         }
 
         if (empty($productIds)) {
@@ -71,7 +71,7 @@ class Meilisearch_Search_Helper_IndexChecker extends Mage_Core_Helper_Abstract
      */
     private function pendingPriceIndex($storeId)
     {
-        $returnArray = array();
+        $returnArray = [];
 
         if ($this->configHelper->shouldCheckPriceIndex($storeId)) {
             $maxVersion = $this->findLatestVersion($this->checkTablePrefix('catalog_product_index_price_cl'));
@@ -89,7 +89,7 @@ class Meilisearch_Search_Helper_IndexChecker extends Mage_Core_Helper_Abstract
      */
     private function pendingStockIndex($storeId)
     {
-        $returnArray = array();
+        $returnArray = [];
 
         if ($this->configHelper->shouldCheckStockIndex($storeId)) {
             $maxVersion = $this->findLatestVersion($this->checkTablePrefix('cataloginventory_stock_status_cl'));
@@ -115,7 +115,7 @@ class Meilisearch_Search_Helper_IndexChecker extends Mage_Core_Helper_Abstract
         $select = $connection->select()
             ->distinct()
             ->from($changeLogTable, $idColumn)
-            ->join(array($this->checkTablePrefix('catalog_product_entity') => $this->checkTablePrefix('catalog_product_entity')), "$changeLogTable.$idColumn = $joinCond.entity_id", array())
+            ->join([$this->checkTablePrefix('catalog_product_entity') => $this->checkTablePrefix('catalog_product_entity')], "$changeLogTable.$idColumn = $joinCond.entity_id", [])
             ->where('version_id > ?', $maxVersion);
 
         return $connection->fetchCol($select);

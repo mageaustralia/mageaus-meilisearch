@@ -152,6 +152,8 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
         $products = Mage::getResourceModel('catalog/product_collection');
 
         $products = $products->setStoreId($storeId);
+        // Store filter: ensures only products assigned to this store's website are indexed
+
         $products = $products->addStoreFilter($storeId);
         $products = $products->distinct(true);
 
@@ -319,8 +321,6 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
             'displayedAttributes'     => array_values($displayedAttributes),
             'filterableAttributes'    => $attributesForFaceting,
             'sortableAttributes'      => array_values(array_unique($sortableAttributes)),
-            'maxValuesPerFacet'       => (int) $this->config->getMaxValuesPerFacet($storeId),
-            'removeWordsIfNoResults'  => $this->config->getRemoveWordsIfNoResult($storeId),
         ];
 
         // Additional index settings from event observer
@@ -493,15 +493,6 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
             $indexName = $this->getIndexName($storeId);
             $indexNameTmp = $this->getIndexName($storeId, $saveToTmpIndicesToo);
 
-            try {
-                $this->meilisearch_helper->copyRules($indexName, $indexNameTmp);
-            } catch (Exception $e) {
-                // Fail silently if query rules are disabled on the app
-                // If QRs are disabled, nothing will happen and the extension will work as expected
-                if (!str_contains($e->getMessage(), 'Query Rules are not enabled')) {
-                    throw $e;
-                }
-            }
         }
     }
 
@@ -938,7 +929,7 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
             $thumb = $imageHelper->init($product, 'thumbnail')->resize(100, 100);
 
             try {
-                $customData['thumbnail_url'] = (string)$thumb;
+                $customData['thumbnail_url'] = (string) $thumb;
             } catch (\Exception $e) {
                 $this->logger->log($e->getMessage());
                 $this->logger->log($e->getTraceAsString());
@@ -955,7 +946,7 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
             $smallImage = $imageHelper->init($product, 'small_image')->resize(400, 400);
 
             try {
-                $customData['small_image_url'] = (string)$smallImage;
+                $customData['small_image_url'] = (string) $smallImage;
             } catch (\Exception $e) {
                 $this->logger->log($e->getMessage());
                 $this->logger->log($e->getTraceAsString());
@@ -972,7 +963,7 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
                          ->resize($this->config->getImageWidth(), $this->config->getImageHeight());
 
             try {
-                $customData['image_url'] = (string)$image;
+                $customData['image_url'] = (string) $image;
             } catch (\Exception $e) {
                 $this->logger->log($e->getMessage());
                 $this->logger->log($e->getTraceAsString());
@@ -1117,7 +1108,7 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
 
                                     try {
                                         $textValueInLower = mb_strtolower((string) $textValue, 'utf-8');
-                                        $subProductImages[$textValueInLower] = (string)$image;
+                                        $subProductImages[$textValueInLower] = (string) $image;
                                     } catch (\Exception $e) {
                                         $this->logger->log($e->getMessage());
                                         $this->logger->log($e->getTraceAsString());

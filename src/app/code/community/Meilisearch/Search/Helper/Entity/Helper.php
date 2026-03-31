@@ -15,7 +15,7 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
     protected static $_categoryNames;
 
     /** @var array */
-    private $nonCastableAttributes = array('sku', 'name', 'description');
+    private $nonCastableAttributes = ['sku', 'name', 'description'];
 
     abstract protected function getIndexNameSuffix();
 
@@ -28,18 +28,18 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
         // Merge non castable attributes set in config
         $this->nonCastableAttributes = array_merge(
             $this->nonCastableAttributes,
-            $this->config->getNonCastableAttributes()
+            $this->config->getNonCastableAttributes(),
         );
     }
 
     public function getBaseIndexName($storeId = null)
     {
-        return (string) $this->config->getIndexPrefix($storeId).Mage::app()->getStore($storeId)->getCode();
+        return (string) $this->config->getIndexPrefix($storeId) . Mage::app()->getStore($storeId)->getCode();
     }
 
     public function getIndexName($storeId = null, $getTmpIndexName = false)
     {
-        $indexName = (string) $this->getBaseIndexName($storeId).$this->getIndexNameSuffix();
+        $indexName = (string) $this->getBaseIndexName($storeId) . $this->getIndexNameSuffix();
 
         if ($getTmpIndexName === true) {
             $indexName .= '_tmp';
@@ -50,12 +50,12 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
 
     protected function try_cast($value)
     {
-        if (is_numeric($value) && floatval($value) == floatval(intval($value))) {
-            return intval($value);
+        if (is_numeric($value) && (float) $value == (float) ((int) $value)) {
+            return (int) $value;
         }
 
         if (is_numeric($value)) {
-            return floatval($value);
+            return (float) $value;
         }
 
         return $value;
@@ -71,7 +71,7 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
             $data = $this->try_cast($data);
 
             if (is_array($data) === false) {
-                $data = explode('|', $data);
+                $data = explode('|', (string) $data);
 
                 if (count($data) == 1) {
                     $data = $data[0];
@@ -85,12 +85,12 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
         }
     }
 
-    protected function strip($s, $completeRemoveTags = array())
+    protected function strip($s, $completeRemoveTags = [])
     {
         if (!empty($completeRemoveTags)) {
             $dom = new DOMDocument();
             if (@$dom->loadHTML('<?xml encoding="utf-8" ?>' . $s)) {
-                $toRemove = array();
+                $toRemove = [];
                 foreach ($completeRemoveTags as $tag) {
                     $removeTags = $dom->getElementsByTagName($tag);
 
@@ -107,11 +107,11 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
             }
         }
 
-        $s = trim(preg_replace('/\s+/', ' ', $s));
+        $s = trim((string) preg_replace('/\s+/', ' ', (string) $s));
         $s = preg_replace('/&nbsp;/', ' ', $s);
-        $s = preg_replace('!\s+!', ' ', $s);
-        $s = preg_replace('/\{\{[^}]+\}\}/', ' ', $s);
-        $s = strip_tags($s);
+        $s = preg_replace('!\s+!', ' ', (string) $s);
+        $s = preg_replace('/\{\{[^}]+\}\}/', ' ', (string) $s);
+        $s = strip_tags((string) $s);
         $s = trim($s);
 
         return $s;
@@ -119,14 +119,14 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
 
     public function isCategoryActive($categoryId, $storeId = null)
     {
-        $storeId = intval($storeId);
-        $categoryId = intval($categoryId);
+        $storeId = (int) $storeId;
+        $categoryId = (int) $categoryId;
 
         if ($path = $this->getCategoryPath($categoryId, $storeId)) {
             // Check whether the specified category is active
 
             $isActive = true; // Check whether all parent categories for the current category are active
-            $parentCategoryIds = explode('/', $path);
+            $parentCategoryIds = explode('/', (string) $path);
 
             if (count($parentCategoryIds) <= 2) {
                 // Exclude root category
@@ -158,18 +158,18 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
     public function getCategoryPath($categoryId, $storeId = null)
     {
         $categories = $this->getCategories();
-        $storeId = intval($storeId);
-        $categoryId = intval($categoryId);
+        $storeId = (int) $storeId;
+        $categoryId = (int) $categoryId;
         $path = null;
-        $key = $storeId.'-'.$categoryId;
+        $key = $storeId . '-' . $categoryId;
 
         if (isset($categories[$key])) {
-            $path = ($categories[$key]['value'] == 1) ? strval($categories[$key]['path']) : null;
+            $path = ($categories[$key]['value'] == 1) ? (string) ($categories[$key]['path']) : null;
         } elseif ($storeId !== 0) {
-            $key = '0-'.$categoryId;
+            $key = '0-' . $categoryId;
 
             if (isset($categories[$key])) {
-                $path = ($categories[$key]['value'] == 1) ? strval($categories[$key]['path']) : null;
+                $path = ($categories[$key]['value'] == 1) ? (string) ($categories[$key]['path']) : null;
             }
         }
 
@@ -179,7 +179,7 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
     public function getCategories()
     {
         if (is_null(self::$_activeCategories)) {
-            self::$_activeCategories = array();
+            self::$_activeCategories = [];
 
             /** @var Mage_Catalog_Model_Resource_Category $resource */
             $resource = Mage::getResourceModel('catalog/category');
@@ -189,12 +189,15 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
                 $coreResource = Mage::getSingleton('core/resource');
                 $connection = $coreResource->getConnection('core_read');
 
-                $select = $connection->select()->from(array('backend' => $attribute->getBackendTable()), array(
-                        'key' => new Maho\Db\Expr("CONCAT(backend.store_id, '-', backend.entity_id)"),
-                        'category.path',
-                        'backend.value',
-                    ))->join(array('category' => $resource->getTable('catalog/category')),
-                        'backend.entity_id = category.entity_id', array())
+                $select = $connection->select()->from(['backend' => $attribute->getBackendTable()], [
+                    'key' => new Maho\Db\Expr("CONCAT(backend.store_id, '-', backend.entity_id)"),
+                    'category.path',
+                    'backend.value',
+                ])->join(
+                    ['category' => $resource->getTable('catalog/category')],
+                    'backend.entity_id = category.entity_id',
+                    [],
+                )
                                      ->where('backend.entity_type_id = ?', $attribute->getEntityTypeId())
                                      ->where('backend.attribute_id = ?', $attribute->getAttributeId())
                                      ->order('backend.store_id')->order('backend.entity_id');
@@ -216,11 +219,11 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
             $storeId = $storeId->getId();
         }
 
-        $categoryId = intval($categoryId);
-        $storeId = intval($storeId);
+        $categoryId = (int) $categoryId;
+        $storeId = (int) $storeId;
 
         if (is_null(self::$_categoryNames)) {
-            self::$_categoryNames = array();
+            self::$_categoryNames = [];
 
             $resource = Mage::getResourceModel('catalog/category');
             /** @var $resource Mage_Catalog_Model_Resource_Category */
@@ -229,10 +232,15 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
                 $coreResource = Mage::getSingleton('core/resource');
                 $connection = $coreResource->getConnection('core_read');
 
-                $select = $connection->select()->from(array('backend' => $attribute->getBackendTable()),
-                        array(new Maho\Db\Expr("CONCAT(backend.store_id, '-', backend.entity_id)"), 'backend.value'))
-                                     ->join(array('category' => $resource->getTable('catalog/category')),
-                                         'backend.entity_id = category.entity_id', array())
+                $select = $connection->select()->from(
+                    ['backend' => $attribute->getBackendTable()],
+                    [new Maho\Db\Expr("CONCAT(backend.store_id, '-', backend.entity_id)"), 'backend.value'],
+                )
+                                     ->join(
+                                         ['category' => $resource->getTable('catalog/category')],
+                                         'backend.entity_id = category.entity_id',
+                                         [],
+                                     )
                                      ->where('backend.entity_type_id = ?', $attribute->getEntityTypeId())
                                      ->where('backend.attribute_id = ?', $attribute->getAttributeId())
                                      ->where('category.level > ?', 1);
@@ -243,19 +251,19 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
 
         $categoryName = null;
 
-        $key = $storeId.'-'.$categoryId;
+        $key = $storeId . '-' . $categoryId;
 
         if (isset(self::$_categoryNames[$key])) {
             // Check whether the category name is present for the specified store
 
-            $categoryName = strval(self::$_categoryNames[$key]);
+            $categoryName = (string) (self::$_categoryNames[$key]);
         } elseif ($storeId != 0) {
             // Check whether the category name is present for the default store
 
-            $key = '0-'.$categoryId;
+            $key = '0-' . $categoryId;
 
             if (isset(self::$_categoryNames[$key])) {
-                $categoryName = strval(self::$_categoryNames[$key]);
+                $categoryName = (string) (self::$_categoryNames[$key]);
             }
         }
 
@@ -266,7 +274,7 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
     {
         /** @var Meilisearch_Search_Helper_Config $config */
         $config = Mage::helper('meilisearch_search/config');
-        $store_ids = array();
+        $store_ids = [];
 
         if ($store_id == null) {
             /** @var Mage_Core_Model_Store $store */
@@ -282,7 +290,7 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
         } elseif (is_array($store_id)) {
             return $store_id;
         } else {
-            $store_ids = array($store_id);
+            $store_ids = [$store_id];
         }
 
         return $store_ids;

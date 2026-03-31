@@ -9,12 +9,12 @@ $installer->startSetup();
 
 $tableName = $installer->getTable('meilisearch_search/queue');
 
-$installer->getConnection()->addColumn($tableName, 'created', array(
+$installer->getConnection()->addColumn($tableName, 'created', [
     'type' => Varien_Db_Ddl_Table::TYPE_DATETIME,
     'after' => 'job_id',
     'nullable' => true,
     'comment' => 'Time of job creation',
-));
+]);
 
 $installer->run("
 CREATE TABLE IF NOT EXISTS `{$tableName}_log` (

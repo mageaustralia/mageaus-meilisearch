@@ -7,10 +7,12 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
      *
      * @return Mage_Adminhtml_Controller_Action
      */
+    #[\Override]
     public function preDispatch()
     {
+        parent::preDispatch();
         $this->_checkQueueIsActivated();
-        return parent::preDispatch();
+        return $this;
     }
 
     public function indexAction()
@@ -21,10 +23,10 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
 
         $this->loadLayout();
         $this->_setActiveMenu('system/meilisearch/indexing_queue');
-        
+
         // Create the grid container block
         $this->_addContent($this->getLayout()->createBlock('meilisearch_search/adminhtml_queue'));
-        
+
         $this->renderLayout();
     }
 
@@ -37,7 +39,8 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
         $id = $this->getRequest()->getParam('id');
         if (!$id) {
             Mage::getSingleton('adminhtml/session')->addError(
-                Mage::helper('meilisearch_search')->__('Indexing Queue Job ID is not set.'));
+                Mage::helper('meilisearch_search')->__('Indexing Queue Job ID is not set.'),
+            );
             $this->_redirect('*/*/');
             return;
         }
@@ -45,7 +48,8 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
         $job = Mage::getModel('meilisearch_search/job')->load($id);
         if (!$job->getId()) {
             Mage::getSingleton('adminhtml/session')->addError(
-                Mage::helper('meilisearch_search')->__('This indexing queue job no longer exists.'));
+                Mage::helper('meilisearch_search')->__('This indexing queue job no longer exists.'),
+            );
             $this->_redirect('*/*/');
             return;
         }
@@ -92,8 +96,11 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
     {
         if (!Mage::helper('meilisearch_search/config')->isQueueActive()) {
             Mage::getSingleton('adminhtml/session')->addWarning(
-                $this->__('The indexing queue is not enabled. Please activate it in your <a href="%s">Meilisearch configuration</a>.',
-                    $this->getUrl('adminhtml/system_config/edit/section/meilisearch')));
+                $this->__(
+                    'The indexing queue is not enabled. Please activate it in your <a href="%s">Meilisearch configuration</a>.',
+                    $this->getUrl('adminhtml/system_config/edit/section/meilisearch'),
+                ),
+            );
         }
     }
 
@@ -102,6 +109,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
      *
      * @return bool
      */
+    #[\Override]
     protected function _isAllowed()
     {
         return Mage::getSingleton('admin/session')->isAllowed('system/meilisearch_search/indexing_queue');

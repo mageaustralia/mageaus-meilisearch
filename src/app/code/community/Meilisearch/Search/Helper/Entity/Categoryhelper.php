@@ -12,15 +12,15 @@ class Meilisearch_Search_Helper_Entity_Categoryhelper extends Meilisearch_Search
 
     public function getIndexSettings($storeId)
     {
-        $searchableAttributes = array();
-        $unretrievableAttributes = array();
+        $searchableAttributes = [];
+        $unretrievableAttributes = [];
 
         foreach ($this->config->getCategoryAdditionalAttributes($storeId) as $attribute) {
             if ($attribute['searchable'] == '1') {
                 if ($attribute['order'] == 'ordered') {
                     $searchableAttributes[] = $attribute['attribute'];
                 } else {
-                    $searchableAttributes[] = 'unordered('.$attribute['attribute'].')';
+                    $searchableAttributes[] = 'unordered(' . $attribute['attribute'] . ')';
                 }
             }
 
@@ -31,23 +31,23 @@ class Meilisearch_Search_Helper_Entity_Categoryhelper extends Meilisearch_Search
 
         $customRankings = $this->config->getCategoryCustomRanking($storeId);
 
-        $customRankingsArr = array();
+        $customRankingsArr = [];
 
         foreach ($customRankings as $ranking) {
-            $customRankingsArr[] = $ranking['order'].'('.$ranking['attribute'].')';
+            $customRankingsArr[] = $ranking['order'] . '(' . $ranking['attribute'] . ')';
         }
 
         // Default index settings
-        $indexSettings = array(
+        $indexSettings = [
             'searchableAttributes'    => array_values(array_unique($searchableAttributes)),
             'customRanking'           => $customRankingsArr,
             'unretrievableAttributes' => $unretrievableAttributes,
-        );
+        ];
 
         // Additional index settings from event observer
         $transport = new Varien_Object($indexSettings);
-        Mage::dispatchEvent('meilisearch_index_settings_prepare', array('store_id' => $storeId, 'index_settings' => $transport));
-        Mage::dispatchEvent('meilisearch_categories_index_before_set_settings', array('store_id' => $storeId, 'index_settings' => $transport));
+        Mage::dispatchEvent('meilisearch_index_settings_prepare', ['store_id' => $storeId, 'index_settings' => $transport]);
+        Mage::dispatchEvent('meilisearch_categories_index_before_set_settings', ['store_id' => $storeId, 'index_settings' => $transport]);
         $indexSettings = $transport->getData();
 
         $this->meilisearch_helper->mergeSettings($this->getIndexName($storeId), $indexSettings);
@@ -63,7 +63,7 @@ class Meilisearch_Search_Helper_Entity_Categoryhelper extends Meilisearch_Search
 
         $unserializedCategorysAttrs = $this->config->getCategoryAdditionalAttributes($storeId);
 
-        $additionalAttr = array();
+        $additionalAttr = [];
 
         foreach ($unserializedCategorysAttrs as $attr) {
             $additionalAttr[] = $attr['attribute'];
@@ -79,14 +79,14 @@ class Meilisearch_Search_Helper_Entity_Categoryhelper extends Meilisearch_Search
             ->addUrlRewriteToResult()
             ->addIsActiveFilter()
             ->setStoreId($storeId)
-            ->addAttributeToSelect(array_merge(array('name'), $additionalAttr))
-            ->addFieldToFilter('level', array('gt' => 1));
+            ->addAttributeToSelect(array_merge(['name'], $additionalAttr))
+            ->addFieldToFilter('level', ['gt' => 1]);
 
         if ($categoryIds) {
-            $categories->addFieldToFilter('entity_id', array('in' => $categoryIds));
+            $categories->addFieldToFilter('entity_id', ['in' => $categoryIds]);
         }
 
-        Mage::dispatchEvent('meilisearch_after_categories_collection_build', array('store' => $storeId, 'collection' => $categories));
+        Mage::dispatchEvent('meilisearch_after_categories_collection_build', ['store' => $storeId, 'collection' => $categories]);
 
         return $categories;
     }
@@ -94,22 +94,22 @@ class Meilisearch_Search_Helper_Entity_Categoryhelper extends Meilisearch_Search
     public function getAllAttributes()
     {
         if (is_null(self::$_categoryAttributes)) {
-            self::$_categoryAttributes = array();
+            self::$_categoryAttributes = [];
 
             /** @var $config Mage_Eav_Model_Config */
             $config = Mage::getSingleton('eav/config');
 
             $allAttributes = $config->getEntityAttributeCodes('catalog_category');
 
-            $categoryAttributes = array_merge($allAttributes, array('product_count'));
+            $categoryAttributes = array_merge($allAttributes, ['product_count']);
 
-            $excludedAttributes = array(
+            $excludedAttributes = [
                 'all_children', 'available_sort_by', 'children', 'children_count', 'custom_apply_to_products',
                 'custom_design', 'custom_design_from', 'custom_design_to', 'custom_layout_update', 'custom_use_parent_settings',
                 'default_sort_by', 'display_mode', 'filter_price_range', 'global_position', 'image', 'include_in_menu', 'is_active',
                 'is_always_include_in_menu', 'is_anchor', 'landing_page', 'level', 'lower_cms_block',
                 'page_layout', 'path_in_store', 'position', 'small_image', 'thumbnail', 'url_key', 'url_path',
-                'visible_in_menu', );
+                'visible_in_menu', ];
 
             $categoryAttributes = array_diff($categoryAttributes, $excludedAttributes);
 
@@ -135,10 +135,10 @@ class Meilisearch_Search_Helper_Entity_Categoryhelper extends Meilisearch_Search
 
         $category->setProductCount($productCollection->getSize());
 
-        $customData = array();
+        $customData = [];
 
         $transport = new Varien_Object($customData);
-        Mage::dispatchEvent('meilisearch_category_index_before', array('category' => $category, 'custom_data' => $transport));
+        Mage::dispatchEvent('meilisearch_category_index_before', ['category' => $category, 'custom_data' => $transport]);
         $customData = $transport->getData();
 
         $category->getUrlInstance()->setStore($storeId);
@@ -150,17 +150,17 @@ class Meilisearch_Search_Helper_Entity_Categoryhelper extends Meilisearch_Search
             $path .= $this->getCategoryName($categoryId, $storeId);
         }
 
-        $data = array(
+        $data = [
             'objectID'        => $category->getId(),
             'name'            => $category->getName(),
             'path'            => $path,
             'level'           => $category->getLevel(),
             'url'             => $category->getUrl(),
             'include_in_menu' => $category->getIncludeInMenu(),
-            '_tags'           => array('category'),
+            '_tags'           => ['category'],
             'popularity'      => 1,
             'product_count'   => $category->getProductCount(),
-        );
+        ];
 
         try {
             $imageUrl = $this->getThumbnailUrl($category) ?: $category->getImageUrl();
@@ -170,7 +170,7 @@ class Meilisearch_Search_Helper_Entity_Categoryhelper extends Meilisearch_Search
 
                 $data['image_url'] = $imageHelper->removeProtocol($imageUrl);
             }
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             // no image, no default, not fatal
         }
 
@@ -199,7 +199,7 @@ class Meilisearch_Search_Helper_Entity_Categoryhelper extends Meilisearch_Search
         }
 
         $transport = new Varien_Object($data);
-        Mage::dispatchEvent('meilisearch_after_create_category_object', array('category' => $transport, 'categoryObject' => $category));
+        Mage::dispatchEvent('meilisearch_after_create_category_object', ['category' => $transport, 'categoryObject' => $category]);
         $data = $transport->getData();
 
         return $data;
@@ -222,7 +222,7 @@ class Meilisearch_Search_Helper_Entity_Categoryhelper extends Meilisearch_Search
     {
         $url = false;
         if ($image = $category->getThumbnail()) {
-            $url = Mage::getBaseUrl('media').'catalog/category/'.$image;
+            $url = Mage::getBaseUrl('media') . 'catalog/category/' . $image;
         }
 
         return $url;

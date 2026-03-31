@@ -2,6 +2,7 @@
 
 class Meilisearch_Search_Adminhtml_Meilisearch_QueueController extends Mage_Adminhtml_Controller_Action
 {
+    #[\Override]
     protected function _isAllowed()
     {
         return Mage::getSingleton('admin/session')->isAllowed('system/meilisearch_search/indexing_queue');
@@ -18,7 +19,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_QueueController extends Mage_Admi
 
         $readConnection = $resource->getConnection('core_read');
 
-        $size = (int) $readConnection->query('SELECT COUNT(*) as total_count FROM '.$tableName)->fetchColumn(0);
+        $size = (int) $readConnection->query('SELECT COUNT(*) as total_count FROM ' . $tableName)->fetchColumn(0);
         $maxJobsPerSingleRun = $config->getNumberOfJobToRun();
 
         $etaMinutes = ceil($size / $maxJobsPerSingleRun) * 5; // 5 - assuming the queue runner runs every 5 minutes
@@ -31,11 +32,11 @@ class Meilisearch_Search_Adminhtml_Meilisearch_QueueController extends Mage_Admi
             $eta = $hours . ' hours ' . $restMinutes . ' minutes';
         }
 
-        $queueInfo = array(
+        $queueInfo = [
             'isEnabled' => $config->isQueueActive(),
             'currentSize' => $size,
             'eta' => $eta,
-        );
+        ];
 
         $this->sendResponse($queueInfo);
     }
@@ -47,9 +48,9 @@ class Meilisearch_Search_Adminhtml_Meilisearch_QueueController extends Mage_Admi
             $queue = Mage::getModel('meilisearch_search/queue');
             $queue->clearQueue(true);
 
-            $status = array('status' => 'ok');
+            $status = ['status' => 'ok'];
         } catch (\Exception $e) {
-            $status = array('status' => 'ko', 'message' => $e->getMessage());
+            $status = ['status' => 'ko', 'message' => $e->getMessage()];
         }
 
         $this->sendResponse($status);

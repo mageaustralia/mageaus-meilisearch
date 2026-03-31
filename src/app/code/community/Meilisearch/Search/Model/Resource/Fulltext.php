@@ -20,6 +20,7 @@ class Meilisearch_Search_Model_Resource_Fulltext extends Mage_CatalogSearch_Mode
         $this->logger = Mage::helper('meilisearch_search/logger');
     }
 
+    #[\Override]
     public function prepareResult($object, $queryText, $query)
     {
         $storeId = $query->getStoreId();
@@ -30,6 +31,7 @@ class Meilisearch_Search_Model_Resource_Fulltext extends Mage_CatalogSearch_Mode
         return $this;
     }
 
+    #[\Override]
     protected function _saveProductIndexes($storeId, $productIndexes)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {
@@ -47,6 +49,7 @@ class Meilisearch_Search_Model_Resource_Fulltext extends Mage_CatalogSearch_Mode
      *
      * @return $this|Mage_CatalogSearch_Model_Resource_Fulltext
      */
+    #[\Override]
     public function rebuildIndex($storeId = null, $productIds = null)
     {
         if ($this->config->isModuleOutputEnabled() === false) {
@@ -78,7 +81,7 @@ class Meilisearch_Search_Model_Resource_Fulltext extends Mage_CatalogSearch_Mode
 
     private function reindexMeilisearch($storeId, $productIds)
     {
-        if (!$this->config->getApplicationID($storeId) || !$this->config->getAPIKey($storeId)) {
+        if (!$this->config->getServerUrl($storeId) || !$this->config->getAPIKey($storeId)) {
             /** @var Mage_Adminhtml_Model_Session $session */
             $session = Mage::getSingleton('adminhtml/session');
             $session->addError('Meilisearch reindexing failed: You need to configure your Meilisearch credentials (Server URL and API Key) in System > Configuration > Meilisearch Search.');

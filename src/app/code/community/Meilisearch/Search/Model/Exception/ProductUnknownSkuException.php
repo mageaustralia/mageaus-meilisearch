@@ -1,5 +1,3 @@
 <?php
 
-class Meilisearch_Search_Model_Exception_ProductUnknownSkuException extends Meilisearch_Search_Model_Exception_ProductReindexException
-{
-}
+class Meilisearch_Search_Model_Exception_ProductUnknownSkuException extends Meilisearch_Search_Model_Exception_ProductReindexException {}

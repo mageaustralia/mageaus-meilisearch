@@ -5,7 +5,7 @@
  */
 class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_Resource_Fulltext_Engine
 {
-    const ONE_TIME_AMOUNT = 100;
+    public const ONE_TIME_AMOUNT = 100;
 
     /** @var Meilisearch_Search_Helper_Logger */
     protected $logger;
@@ -28,6 +28,7 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
     /** @var Meilisearch_Search_Helper_Entity_Suggestionhelper */
     protected $suggestion_helper;
 
+    #[\Override]
     public function _construct()
     {
         parent::_construct();
@@ -56,19 +57,27 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
 
         foreach ($ids as $id) {
             if (is_array($category_ids) == false) {
-                $category_ids = array($category_ids);
+                $category_ids = [$category_ids];
             }
 
             $by_page = $this->config->getNumberOfElementByPage();
 
             if (is_array($category_ids) && count($category_ids) > $by_page) {
                 foreach (array_chunk($category_ids, $by_page) as $chunk) {
-                    $this->addToQueue('meilisearch_search/observer', 'removeCategories',
-                        array('store_id' => $id, 'category_ids' => $chunk), count($chunk));
+                    $this->addToQueue(
+                        'meilisearch_search/observer',
+                        'removeCategories',
+                        ['store_id' => $id, 'category_ids' => $chunk],
+                        count($chunk),
+                    );
                 }
             } else {
-                $this->addToQueue('meilisearch_search/observer', 'removeCategories',
-                    array('store_id' => $id, 'category_ids' => $category_ids), count($category_ids));
+                $this->addToQueue(
+                    'meilisearch_search/observer',
+                    'removeCategories',
+                    ['store_id' => $id, 'category_ids' => $category_ids],
+                    count($category_ids),
+                );
             }
         }
 
@@ -101,8 +110,12 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
         /** @var Mage_Core_Model_Store $store */
         foreach ($storeIds as $storeId) {
             if ($this->page_helper->shouldIndexPages($storeId) === true) {
-                $this->addToQueue('meilisearch_search/observer', 'rebuildPageIndex',
-                    array('store_id' => $storeId, 'page_ids' => $pageIds), 1);
+                $this->addToQueue(
+                    'meilisearch_search/observer',
+                    'rebuildPageIndex',
+                    ['store_id' => $storeId, 'page_ids' => $pageIds],
+                    1,
+                );
             }
         }
     }
@@ -113,20 +126,24 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
         foreach (Mage::app()->getStores() as $store) {
             if ($this->config->isEnabledBackend($store->getId()) === false) {
                 if (php_sapi_name() === 'cli') {
-                    echo '[MEILISEARCH] INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId())."\n";
+                    echo '[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()) . "\n";
                 }
 
                 /** @var Mage_Adminhtml_Model_Session $session */
                 $session = Mage::getSingleton('adminhtml/session');
-                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId()));
+                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
 
-                $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId()));
+                $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
 
                 continue;
             }
 
-            $this->addToQueue('meilisearch_search/observer', 'rebuildAdditionalSectionsIndex',
-                array('store_id' => $store->getId()), 1);
+            $this->addToQueue(
+                'meilisearch_search/observer',
+                'rebuildAdditionalSectionsIndex',
+                ['store_id' => $store->getId()],
+                1,
+            );
         }
     }
 
@@ -136,14 +153,14 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
         foreach (Mage::app()->getStores() as $store) {
             if ($this->config->isEnabledBackend($store->getId()) === false) {
                 if (php_sapi_name() === 'cli') {
-                    echo '[MEILISEARCH] INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId())."\n";
+                    echo '[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()) . "\n";
                 }
 
                 /** @var Mage_Adminhtml_Model_Session $session */
                 $session = Mage::getSingleton('adminhtml/session');
-                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId()));
+                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
 
-                $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId()));
+                $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
 
                 continue;
             }
@@ -153,13 +170,17 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
             $nb_page = ceil($size / $by_page);
 
             for ($i = 1; $i <= $nb_page; $i++) {
-                $data = array('store_id' => $store->getId(), 'page_size' => $by_page, 'page' => $i);
+                $data = ['store_id' => $store->getId(), 'page_size' => $by_page, 'page' => $i];
                 $this->addToQueue('meilisearch_search/observer', 'rebuildSuggestionIndex', $data, 1);
             }
 
             if ($nb_page > 0) {
-                $this->addToQueue('meilisearch_search/observer', 'moveStoreSuggestionIndex',
-                    array('store_id' => $store->getId()), 1);
+                $this->addToQueue(
+                    'meilisearch_search/observer',
+                    'moveStoreSuggestionIndex',
+                    ['store_id' => $store->getId()],
+                    1,
+                );
             }
         }
 
@@ -180,28 +201,32 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
 
             if ($this->config->isEnabledBackend($storeId) === false) {
                 if (php_sapi_name() === 'cli') {
-                    echo '[MEILISEARCH] INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId)."\n";
+                    echo '[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId) . "\n";
                 }
 
                 /** @var Mage_Adminhtml_Model_Session $session */
                 $session = Mage::getSingleton('adminhtml/session');
-                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
-                $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+                $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
                 continue;
             }
 
             if ($store->getIsActive()) {
                 $useTmpIndex = $this->config->isQueueActive($storeId);
-                $this->_rebuildProductIndex($storeId, array(), $useTmpIndex);
+                $this->_rebuildProductIndex($storeId, [], $useTmpIndex);
 
                 if ($this->config->isQueueActive($storeId)) {
-                    $this->addToQueue('meilisearch_search/observer', 'moveProductsTmpIndex', array('store_id' => $storeId), 1);
+                    $this->addToQueue('meilisearch_search/observer', 'moveProductsTmpIndex', ['store_id' => $storeId], 1);
                 }
             } else {
-                $this->addToQueue('meilisearch_search/observer', 'deleteProductsStoreIndices',
-                    array('store_id' => $storeId), 1);
+                $this->addToQueue(
+                    'meilisearch_search/observer',
+                    'deleteProductsStoreIndices',
+                    ['store_id' => $storeId],
+                    1,
+                );
             }
         }
     }
@@ -212,24 +237,32 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
         foreach (Mage::app()->getStores() as $store) {
             if ($this->config->isEnabledBackend($store->getId()) === false) {
                 if (php_sapi_name() === 'cli') {
-                    echo '[MEILISEARCH] INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId())."\n";
+                    echo '[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()) . "\n";
                 }
 
                 /** @var Mage_Adminhtml_Model_Session $session */
                 $session = Mage::getSingleton('adminhtml/session');
-                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId()));
+                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
 
-                $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId()));
+                $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
 
                 continue;
             }
 
             if ($store->getIsActive()) {
-                $this->addToQueue('meilisearch_search/observer', 'rebuildCategoryIndex',
-                    array('store_id' => $store->getId(), 'category_ids' => array()), 1);
+                $this->addToQueue(
+                    'meilisearch_search/observer',
+                    'rebuildCategoryIndex',
+                    ['store_id' => $store->getId(), 'category_ids' => []],
+                    1,
+                );
             } else {
-                $this->addToQueue('meilisearch_search/observer', 'deleteCategoriesStoreIndices',
-                    array('store_id' => $store->getId()), 1);
+                $this->addToQueue(
+                    'meilisearch_search/observer',
+                    'deleteCategoriesStoreIndices',
+                    ['store_id' => $store->getId()],
+                    1,
+                );
             }
         }
     }
@@ -262,18 +295,22 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
             $nb_page = ceil($size / $by_page);
 
             for ($i = 1; $i <= $nb_page; $i++) {
-                $data = array(
+                $data = [
                     'store_id'     => $storeId,
                     'category_ids' => $categoryIds,
                     'page_size'    => $by_page,
                     'page'         => $i,
-                );
+                ];
 
                 $this->addToQueue('meilisearch_search/observer', 'rebuildCategoryIndex', $data, $by_page);
             }
         } else {
-            $this->addToQueue('meilisearch_search/observer', 'rebuildCategoryIndex',
-                array('store_id' => $storeId, 'category_ids' => $categoryIds), count($categoryIds));
+            $this->addToQueue(
+                'meilisearch_search/observer',
+                'rebuildCategoryIndex',
+                ['store_id' => $storeId, 'category_ids' => $categoryIds],
+                count($categoryIds),
+            );
         }
 
         return $this;
@@ -293,24 +330,29 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
             $nb_page = ceil($size / $by_page);
 
             for ($i = 1; $i <= $nb_page; $i++) {
-                $data = array(
+                $data = [
                     'store_id'      => $storeId,
                     'product_ids'   => $productIds,
                     'page_size'     => $by_page,
                     'page'          => $i,
                     'use_tmp_index' => $useTmpIndex,
-                );
+                ];
 
                 $this->addToQueue('meilisearch_search/observer', 'rebuildProductIndex', $data, $by_page);
             }
         } else {
-            $this->addToQueue('meilisearch_search/observer', 'rebuildProductIndex',
-                array('store_id' => $storeId, 'product_ids' => $productIds), count($productIds));
+            $this->addToQueue(
+                'meilisearch_search/observer',
+                'rebuildProductIndex',
+                ['store_id' => $storeId, 'product_ids' => $productIds],
+                count($productIds),
+            );
         }
 
         return $this;
     }
 
+    #[\Override]
     public function prepareEntityIndex($index, $separator = ' ')
     {
         if ($this->config->isEnabledBackend(Mage::app()->getStore()->getId()) === false) {
@@ -332,37 +374,39 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
 
     public function saveSettings($isFullProductReindex = false)
     {
-        $this->addToQueue('meilisearch_search/observer', 'saveSettings', array('isFullProductReindex' => $isFullProductReindex), 1);
+        $this->addToQueue('meilisearch_search/observer', 'saveSettings', ['isFullProductReindex' => $isFullProductReindex], 1);
     }
 
-    public function deleteInactiveProducts()
+    /**
+     * Rebuild Amasty Shop By pages index
+     *
+     * @return void
+     */
+    public function rebuildAmastyPages()
     {
+        if (!Mage::helper('core')->isModuleEnabled('Amasty_Shopby')) {
+            return;
+        }
+
         /** @var Meilisearch_Search_Helper_Data $helper */
         $helper = Mage::helper('meilisearch_search');
 
-        /** @var Mage_Core_Model_Store $store */
+        // For each store, rebuild Amasty pages
         foreach (Mage::app()->getStores() as $store) {
-            $storeId = $store->getId();
-
             if (!$store->getIsActive()) {
                 continue;
             }
 
             if ($this->config->isEnabledBackend($store->getId()) === false) {
-                if (php_sapi_name() === 'cli') {
-                    echo '[MEILISEARCH] INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId())."\n";
-                }
-
-                /** @var Mage_Adminhtml_Model_Session $session */
-                $session = Mage::getSingleton('adminhtml/session');
-                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId()));
-
-                $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store->getId()));
-
                 continue;
             }
 
-            $helper->deleteInactiveProducts($storeId);
+            try {
+                // Rebuild pages for this store
+                $helper->rebuildStorePageIndex($store->getId());
+            } catch (Exception $e) {
+                $this->logger->log('Error rebuilding Amasty pages for store ' . $store->getId() . ': ' . $e->getMessage());
+            }
         }
     }
 }

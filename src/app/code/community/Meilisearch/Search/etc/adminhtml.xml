@@ -27,6 +27,11 @@
                             <action>adminhtml/meilisearch_queue</action>
                             <sort_order>15</sort_order>
                         </queue>
+                        <search_analytics translate="title" module="meilisearch_search">
+                            <title>Search Analytics</title>
+                            <action>adminhtml/meilisearch_searchAnalytics</action>
+                            <sort_order>20</sort_order>
+                        </search_analytics>
                         <reindexsku translate="title" module="meilisearch_search">
                             <title>Reindex SKU(s)</title>
                             <action>adminhtml/meilisearch_reindexsku</action>
@@ -66,6 +71,11 @@
                                         <title>Queue Management</title>
                                         <sort_order>105</sort_order>
                                     </queue>
+                        <search_analytics translate="title" module="meilisearch_search">
+                            <title>Search Analytics</title>
+                            <action>adminhtml/meilisearch_searchAnalytics</action>
+                            <sort_order>20</sort_order>
+                        </search_analytics>
                                     <reindexsku translate="title" module="meilisearch_search">
                                         <title>Reindex SKU(s)</title>
                                         <sort_order>110</sort_order>

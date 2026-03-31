@@ -2,17 +2,17 @@
 
 class Meilisearch_Search_Model_Source_JobStatuses
 {
-    const STATUS_NEW = 'new';
-    const STATUS_PROCESSING = 'processing';
-    const STATUS_ERROR = 'error';
-    const STATUS_COMPLETE = 'complete';
+    public const STATUS_NEW = 'new';
+    public const STATUS_PROCESSING = 'processing';
+    public const STATUS_ERROR = 'error';
+    public const STATUS_COMPLETE = 'complete';
 
-    protected $_statuses = array(
+    protected $_statuses = [
         self::STATUS_NEW => 'New',
         self::STATUS_ERROR => 'Error',
         self::STATUS_PROCESSING => 'Processing',
-        self::STATUS_COMPLETE => 'Complete'
-    );
+        self::STATUS_COMPLETE => 'Complete',
+    ];
 
     /**
      * @return array
@@ -27,12 +27,12 @@ class Meilisearch_Search_Model_Source_JobStatuses
      */
     public function toOptionArray()
     {
-        $options = array();
+        $options = [];
         foreach ($this->_methods as $method => $label) {
-            $option[] = array(
+            $option[] = [
                 'value' => $method,
                 'label' => $label,
-            );
+            ];
         }
         return $options;
     }

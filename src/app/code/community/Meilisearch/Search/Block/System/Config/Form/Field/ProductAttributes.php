@@ -7,12 +7,12 @@ class Meilisearch_Search_Block_System_Config_Form_Field_ProductAttributes extend
 {
     public function __construct()
     {
-        $this->settings = array(
-            'columns' => array(
-                'attribute' => array(
+        $this->settings = [
+            'columns' => [
+                'attribute' => [
                     'label'   => 'Attribute',
                     'options' => function () {
-                        $options = array();
+                        $options = [];
 
                         /** @var Meilisearch_Search_Helper_Entity_Producthelper $product_helper */
                         $product_helper = Mage::helper('meilisearch_search/entity_producthelper');
@@ -27,11 +27,11 @@ class Meilisearch_Search_Block_System_Config_Form_Field_ProductAttributes extend
                     },
                     'rowMethod' => 'getAttribute',
                     'width' => 150,
-                ),
-            ),
+                ],
+            ],
             'buttonLabel' => 'Add Attribute',
             'addAfter'    => false,
-        );
+        ];
 
         parent::__construct();
     }

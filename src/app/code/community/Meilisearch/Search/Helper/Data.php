@@ -2,7 +2,7 @@
 
 class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 {
-    const COLLECTION_PAGE_SIZE = 100;
+    public const COLLECTION_PAGE_SIZE = 100;
 
     /** @var Meilisearch_Search_Helper_Meilisearchhelper */
     protected $meilisearch_helper;
@@ -47,7 +47,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
     {
         if ($storeId !== null) {
             if ($this->config->isEnabledBackend($storeId) === false) {
-                $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+                $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
                 return;
             }
@@ -60,7 +60,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
     {
         if ($storeId !== null) {
             if ($this->config->isEnabledBackend($storeId) === false) {
-                $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+                $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
                 return;
             }
@@ -78,21 +78,27 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         }
 
         if ($this->config->isEnabledBackend($storeId) === false) {
-            $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
             return;
         }
 
         try {
-            $this->meilisearch_helper->setSettings($this->category_helper->getIndexName($storeId),
-                $this->category_helper->getIndexSettings($storeId));
-            $this->meilisearch_helper->setSettings($this->page_helper->getIndexName($storeId),
-                $this->page_helper->getIndexSettings($storeId));
-            $this->meilisearch_helper->setSettings($this->suggestion_helper->getIndexName($storeId),
-                $this->suggestion_helper->getIndexSettings($storeId));
+            $this->meilisearch_helper->setSettings(
+                $this->category_helper->getIndexName($storeId),
+                $this->category_helper->getIndexSettings($storeId),
+            );
+            $this->meilisearch_helper->setSettings(
+                $this->page_helper->getIndexName($storeId),
+                $this->page_helper->getIndexSettings($storeId),
+            );
+            $this->meilisearch_helper->setSettings(
+                $this->suggestion_helper->getIndexName($storeId),
+                $this->suggestion_helper->getIndexSettings($storeId),
+            );
         } catch (\Exception $e) {
-            if (strpos($e->getMessage(), 'Invalid API key') !== false || 
-                strpos($e->getMessage(), 'The provided API key is invalid') !== false ||
+            if (str_contains($e->getMessage(), 'Invalid API key') ||
+                str_contains($e->getMessage(), 'The provided API key is invalid') ||
                 (method_exists($e, 'getCode') && $e->getCode() === 403)) {
                 throw new \Exception('The provided API key is invalid.');
             }
@@ -104,8 +110,22 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                 continue;
             }
 
-            $this->meilisearch_helper->setSettings($this->additionalsections_helper->getIndexName($storeId).'_'.$section['name'],
-                $this->additionalsections_helper->getIndexSettings($storeId));
+            $this->meilisearch_helper->setSettings(
+                $this->additionalsections_helper->getIndexName($storeId) . '_' . $section['name'],
+                $this->additionalsections_helper->getIndexSettings($storeId),
+            );
+        }
+
+        // On full reindex, delete the tmp index first to ensure a clean slate.
+        // Without this, products deleted from Magento would persist in the tmp index
+        // from a previous (possibly failed) reindex and survive the swap.
+        if ($saveToTmpIndicesToo) {
+            $tmpIndexName = $this->product_helper->getIndexName($storeId, true);
+            try {
+                $this->meilisearch_helper->deleteIndex($tmpIndexName);
+            } catch (\Exception $e) {
+                // Index might not exist — that's fine
+            }
         }
 
         $this->product_helper->setSettings($storeId, $saveToTmpIndicesToo);
@@ -125,17 +145,15 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
             $number_of_results = min($this->config->getNumberOfProductResults($storeId), 1000);
         }
 
-        $answer = $this->meilisearch_helper->query($index_name, $query, array(
+        $answer = $this->meilisearch_helper->query($index_name, $query, [
             'hitsPerPage'            => $number_of_results, // retrieve all the hits (hard limit is 1000)
             'attributesToRetrieve'   => 'objectID',
             // 'attributesToHighlight'  => '', // Commented out - empty string not needed
             // 'attributesToSnippet'    => '', // Commented out - not supported in Meilisearch
             // 'numericFilters'         => 'visibility_search=1', // Commented out temporarily - not configured as filterable yet
-            // 'removeWordsIfNoResults' => $this->config->getRemoveWordsIfNoResult($storeId), // Not supported in Meilisearch
-            // 'analyticsTags'          => 'backend-search', // Not supported in Meilisearch
-        ));
+        ]);
 
-        $data = array();
+        $data = [];
 
         foreach ($answer['hits'] as $i => $hit) {
             $productId = $hit['objectID'];
@@ -154,7 +172,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
         foreach ($store_ids as $store_id) {
             if ($this->config->isEnabledBackend($store_id) === false) {
-                $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($store_id));
+                $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store_id));
                 continue;
             }
 
@@ -167,7 +185,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
     public function rebuildStoreAdditionalSectionsIndex($storeId)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {
-            $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
             return;
         }
@@ -179,25 +197,27 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                 continue;
             }
 
-            $index_name = $this->additionalsections_helper->getIndexName($storeId).'_'.$section['name'];
+            $index_name = $this->additionalsections_helper->getIndexName($storeId) . '_' . $section['name'];
 
             $attribute_values = $this->additionalsections_helper->getAttributeValues($storeId, $section);
 
             foreach (array_chunk($attribute_values, 100) as $chunk) {
-                $this->meilisearch_helper->addObjects($chunk, $index_name.'_tmp');
+                $this->meilisearch_helper->addObjects($chunk, $index_name . '_tmp');
             }
 
-            $this->meilisearch_helper->moveIndex($index_name.'_tmp', $index_name);
+            $this->meilisearch_helper->moveIndex($index_name . '_tmp', $index_name);
 
-            $this->meilisearch_helper->setSettings($index_name,
-                $this->additionalsections_helper->getIndexSettings($storeId));
+            $this->meilisearch_helper->setSettings(
+                $index_name,
+                $this->additionalsections_helper->getIndexSettings($storeId),
+            );
         }
     }
 
     public function rebuildStorePageIndex($storeId, $pageIds = null)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {
-            $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
             return;
         }
@@ -227,7 +247,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
     public function rebuildAmastyPagesIndex($storeId, $pageIds = null)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {
-            $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
             return;
         }
 
@@ -236,8 +256,8 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
             $this->logger->log('Amasty Shopby module is not enabled');
             return;
         }
-        
-        $this->logger->log('Starting Amasty pages index for store '.$storeId);
+
+        $this->logger->log('Starting Amasty pages index for store ' . $storeId);
 
         $shouldUseTmpIndex = ($pageIds === null);
 
@@ -249,12 +269,12 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         try {
             /** @var array $pages */
             $pages = $amastyHelper->getAmastyPages($storeId);
-            
-            $this->logger->log('Got '.count($pages).' Amasty pages from helper for store '.$storeId);
-            
+
+            $this->logger->log('Got ' . count($pages) . ' Amasty pages from helper for store ' . $storeId);
+
             $totalIndexed = 0;
             foreach (array_chunk($pages, 100) as $i => $chunk) {
-                $this->logger->log('Processing chunk '.($i+1).' with '.count($chunk).' pages');
+                $this->logger->log('Processing chunk ' . ($i + 1) . ' with ' . count($chunk) . ' pages');
                 $this->meilisearch_helper->addObjects($chunk, $indexName);
                 $totalIndexed += count($chunk);
             }
@@ -265,9 +285,9 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                 $this->meilisearch_helper->setSettings($finalIndexName, $amastyHelper->getIndexSettings($storeId));
             }
 
-            $this->logger->log('Indexed '.$totalIndexed.' Amasty pages in store '.$this->logger->getStoreName($storeId).' (original count: '.count($pages).')');
+            $this->logger->log('Indexed ' . $totalIndexed . ' Amasty pages in store ' . $this->logger->getStoreName($storeId) . ' (original count: ' . count($pages) . ')');
         } catch (Exception $e) {
-            $this->logger->log('Error indexing Amasty pages: '.$e->getMessage());
+            $this->logger->log('Error indexing Amasty pages: ' . $e->getMessage());
         }
 
         $this->stopEmulation($emulationInfo);
@@ -276,7 +296,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
     public function rebuildStoreCategoryIndex($storeId, $categoryIds = null)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {
-            $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
             return;
         }
@@ -290,19 +310,24 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
             if ($size > 0) {
                 $index_name = $this->category_helper->getIndexName($storeId);
-                
+
                 // Clear the index first when doing a full reindex
                 if ($categoryIds === null) {
                     $this->meilisearch_helper->clearIndex($index_name);
                 }
-                
+
                 $pages = ceil($size / $this->config->getNumberOfElementByPage());
                 $collection->clear();
                 $page = 1;
 
                 while ($page <= $pages) {
-                    $this->rebuildStoreCategoryIndexPage($storeId, $collection, $page,
-                        $this->config->getNumberOfElementByPage(), $emulationInfo);
+                    $this->rebuildStoreCategoryIndexPage(
+                        $storeId,
+                        $collection,
+                        $page,
+                        $this->config->getNumberOfElementByPage(),
+                        $emulationInfo,
+                    );
 
                     $page++;
                 }
@@ -317,44 +342,108 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         $this->stopEmulation($emulationInfo);
     }
 
+    public function rebuildStoreBarcodesIndex($storeId, $productIds = null)
+    {
+        if (!$this->config->isEnabledBackend($storeId)) {
+            $this->logger->log('Barcode indexing is disabled for store: ' . $storeId);
+            return;
+        }
+
+        $emulationInfo = $this->startEmulation($storeId);
+
+        try {
+            /** @var Meilisearch_Search_Helper_Entity_Barcodeshelper $barcodesHelper */
+            $barcodesHelper = Mage::helper('meilisearch_search/entity_barcodeshelper');
+
+            // Get barcode index name
+            $indexName = $barcodesHelper->getIndexName($storeId);
+
+            // Clear existing barcode index if no specific product IDs
+            if (empty($productIds)) {
+                $this->meilisearch_helper->clearIndex($indexName);
+            }
+
+            // Get products to index
+            $collection = $this->product_helper->getProductCollectionQuery($storeId, $productIds, false);
+            $size = $collection->getSize();
+
+            if ($size > 0) {
+                $pages = ceil($size / $this->config->getNumberOfElementByPage());
+                $page = 1;
+
+                while ($page <= $pages) {
+                    $this->logger->log("Barcode indexing page {$page}/{$pages} for store {$storeId}");
+
+                    $collection->clear();
+                    $collection->setPageSize($this->config->getNumberOfElementByPage());
+                    $collection->setCurPage($page);
+                    $collection->load();
+
+                    $barcodeData = [];
+                    foreach ($collection as $product) {
+                        $barcodeRecord = $barcodesHelper->getObject($product);
+                        if ($barcodeRecord && !empty($barcodeRecord['barcode'])) {
+                            $barcodeData[] = $barcodeRecord;
+                        }
+                    }
+
+                    if (!empty($barcodeData)) {
+                        $this->meilisearch_helper->addObjects($barcodeData, $indexName);
+                    }
+
+                    $page++;
+                }
+            }
+
+            $this->logger->log("Barcode indexing complete for store {$storeId}");
+        } catch (Exception $e) {
+            $this->logger->log('Error during barcode indexing: ' . $e->getMessage());
+            throw $e;
+        }
+
+        $this->stopEmulation($emulationInfo);
+    }
+
     public function rebuildStoreSuggestionIndex($storeId)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {
-            $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
             return;
         }
 
         $collection = $this->suggestion_helper->getSuggestionCollectionQuery($storeId);
 
+        // Limit to top 50 most popular suggestions — more than enough for autocomplete
+        $collection->setOrder('popularity', 'DESC');
+        $collection->setOrder('num_results', 'DESC');
+        $collection->getSelect()->limit(50);
+
         $size = $collection->getSize();
 
         if ($size > 0) {
-            $pages = ceil($size / $this->config->getNumberOfElementByPage());
-            $collection->clear();
-            $page = 1;
-
-            while ($page <= $pages) {
-                $this->rebuildStoreSuggestionIndexPage($storeId, $collection, $page,
-                    $this->config->getNumberOfElementByPage());
-
-                $page++;
-            }
-
-            unset($indexData);
+            // Single page — we capped at 50
+            $this->rebuildStoreSuggestionIndexPage(
+                $storeId,
+                $collection,
+                1,
+                50,
+            );
         }
     }
 
     public function moveStoreSuggestionIndex($storeId)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {
-            $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
             return;
         }
 
-        $this->meilisearch_helper->moveIndex($this->suggestion_helper->getIndexName($storeId).'_tmp',
-            $this->suggestion_helper->getIndexName($storeId));
+        $this->meilisearch_helper->moveIndex(
+            $this->suggestion_helper->getIndexName($storeId) . '_tmp',
+            $this->suggestion_helper->getIndexName($storeId),
+        );
     }
 
     public function moveProductsIndex($storeId)
@@ -368,7 +457,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
     public function rebuildStoreProductIndex($storeId, $productIds)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {
-            $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
             return;
         }
@@ -383,7 +472,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                 $size = max(count($productIds), $size);
             }
 
-            $this->logger->log('Store '.$this->logger->getStoreName($storeId).' collection size : '.$size);
+            $this->logger->log('Store ' . $this->logger->getStoreName($storeId) . ' collection size : ' . $size);
 
             if ($size > 0) {
                 $pages = ceil($size / $this->config->getNumberOfElementByPage());
@@ -392,8 +481,14 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                 $collection->clear();
 
                 while ($page <= $pages) {
-                    $this->rebuildStoreProductIndexPage($storeId, $collection, $page,
-                        $this->config->getNumberOfElementByPage(), $emulationInfo, $productIds);
+                    $this->rebuildStoreProductIndexPage(
+                        $storeId,
+                        $collection,
+                        $page,
+                        $this->config->getNumberOfElementByPage(),
+                        $emulationInfo,
+                        $productIds,
+                    );
 
                     $page++;
                 }
@@ -409,7 +504,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
     public function rebuildStoreSuggestionIndexPage($storeId, $collectionDefault, $page, $pageSize)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {
-            $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
             return;
         }
@@ -418,13 +513,13 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         $collection->setCurPage($page)->setPageSize($pageSize);
         $collection->load();
 
-        $index_name = $this->suggestion_helper->getIndexName($storeId).'_tmp';
+        $index_name = $this->suggestion_helper->getIndexName($storeId) . '_tmp';
 
         if ($page == 1) {
             $this->meilisearch_helper->setSettings($index_name, $this->suggestion_helper->getIndexSettings($storeId));
         }
 
-        $indexData = array();
+        $indexData = [];
 
         /** @var Mage_CatalogSearch_Model_Query $suggestion */
         foreach ($collection as $suggestion) {
@@ -432,8 +527,8 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
             $suggestionObject = $this->suggestion_helper->getObject($suggestion);
 
-            if (strlen($suggestionObject['query']) >= 3) {
-                array_push($indexData, $suggestionObject);
+            if (strlen((string) $suggestionObject['query']) >= 3) {
+                $indexData[] = $suggestionObject;
             }
         }
 
@@ -452,7 +547,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
     public function rebuildStoreCategoryIndexPage($storeId, $collectionDefault, $page, $pageSize, $emulationInfo = null)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {
-            $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
             return;
         }
@@ -469,7 +564,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
         $index_name = $this->category_helper->getIndexName($storeId);
 
-        $indexData = array();
+        $indexData = [];
 
         /** @var $category Mage_Catalog_Model_Category */
         foreach ($collection as $category) {
@@ -482,7 +577,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
             $categoryObject = $this->category_helper->getObject($category);
 
             if ($this->config->shouldIndexEmptyCategories($storeId) === true || $categoryObject['product_count'] > 0) {
-                array_push($indexData, $categoryObject);
+                $indexData[] = $categoryObject;
             }
         }
 
@@ -502,20 +597,20 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         }
     }
 
-    protected function getProductsRecords($storeId, $collection, $potentiallyDeletedProductsIds = array())
+    protected function getProductsRecords($storeId, $collection, $potentiallyDeletedProductsIds = [])
     {
-        $productsToIndex = array();
-        $productsToRemove = array();
+        $productsToIndex = [];
+        $productsToRemove = [];
 
         // In $potentiallyDeletedProductsIds there might be IDs of deleted products which will not be in a collection
         if (is_array($potentiallyDeletedProductsIds) && !empty($potentiallyDeletedProductsIds)) {
             $potentiallyDeletedProductsIds = array_combine($potentiallyDeletedProductsIds, $potentiallyDeletedProductsIds);
         } else {
-            $potentiallyDeletedProductsIds = array();
+            $potentiallyDeletedProductsIds = [];
         }
 
         if (method_exists('Mage', 'getEdition') === true && Mage::getEdition() === Mage::EDITION_ENTERPRISE) {
-            $productIds = array();
+            $productIds = [];
 
             /** @var Mage_Catalog_Model_Product $products */
             foreach ($collection as $products) {
@@ -527,8 +622,8 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
             $indexChecker->checkIndexers($storeId, $productIds);
         }
 
-        $this->logger->start('CREATE RECORDS '.$this->logger->getStoreName($storeId));
-        $this->logger->log(count($collection).' product records to create');
+        $this->logger->start('CREATE RECORDS ' . $this->logger->getStoreName($storeId));
+        $this->logger->log(count($collection) . ' product records to create');
 
         /** @var $product Mage_Catalog_Model_Product */
         foreach ($collection as $product) {
@@ -541,7 +636,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                 unset($potentiallyDeletedProductsIds[$productId]);
             }
 
-            Mage::dispatchEvent('meilisearch_before_product_availability_check', array('product' => $product, 'store' => $storeId));
+            Mage::dispatchEvent('meilisearch_before_product_availability_check', ['product' => $product, 'store' => $storeId]);
 
             if ($product->getData('meilisearch__noIndex') === true) {
                 $productsToRemove[$productId] = $productId;
@@ -557,7 +652,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
             try {
                 $this->product_helper->canProductBeReindexed($product, $storeId);
-            } catch (Meilisearch_Search_Model_Exception_ProductReindexException $e) {
+            } catch (Meilisearch_Search_Model_Exception_ProductReindexException) {
                 $productsToRemove[$productId] = $productId;
                 continue;
             }
@@ -567,22 +662,22 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
         $productsToRemove = array_merge($productsToRemove, $potentiallyDeletedProductsIds);
 
-        $this->logger->stop('CREATE RECORDS '.$this->logger->getStoreName($storeId));
+        $this->logger->stop('CREATE RECORDS ' . $this->logger->getStoreName($storeId));
 
-        return array(
+        return [
             'toIndex'  => $productsToIndex,
             'toRemove' => array_unique($productsToRemove),
-        );
+        ];
     }
     public function rebuildStoreProductIndexPage($storeId, $collectionDefault, $page, $pageSize, $emulationInfo = null, $productIds = null, $useTmpIndex = false)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {
-            $this->logger->log('INDEXING IS DISABLED FOR '.$this->logger->getStoreName($storeId));
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
             return;
         }
 
-        $this->logger->start('rebuildStoreProductIndexPage '.$this->logger->getStoreName($storeId).' page '.$page.' pageSize '.$pageSize);
+        $this->logger->start('rebuildStoreProductIndexPage ' . $this->logger->getStoreName($storeId) . ' page ' . $page . ' pageSize ' . $pageSize);
         $emulationInfoPage = null;
 
         if ($emulationInfo === null) {
@@ -601,36 +696,48 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         $collection->addUrlRewrite();
 
         if ($this->product_helper->isAttributeEnabled($additionalAttributes, 'stock_qty')) {
-            $collection->joinField('stock_qty', $index_prefix.'cataloginventory_stock_item', 'qty',
-                'product_id=entity_id', '{{table}}.stock_id=1', 'left');
+            $collection->joinField(
+                'stock_qty',
+                $index_prefix . 'cataloginventory_stock_item',
+                'qty',
+                'product_id=entity_id',
+                '{{table}}.stock_id=1',
+                'left',
+            );
         }
 
         if ($this->product_helper->isAttributeEnabled($additionalAttributes, 'ordered_qty')) {
             $collection->getSelect()
-                       ->columns('(SELECT SUM(qty_ordered) FROM '.$index_prefix.'sales_flat_order_item WHERE '.$index_prefix.'sales_flat_order_item.product_id = e.entity_id) as ordered_qty');
+                       ->columns('(SELECT SUM(qty_ordered) FROM ' . $index_prefix . 'sales_flat_order_item WHERE ' . $index_prefix . 'sales_flat_order_item.product_id = e.entity_id) as ordered_qty');
         }
 
         if ($this->product_helper->isAttributeEnabled($additionalAttributes, 'total_ordered')) {
             $collection->getSelect()
-                       ->columns('(SELECT SUM(row_total) FROM '.$index_prefix.'sales_flat_order_item WHERE '.$index_prefix.'sales_flat_order_item.product_id = e.entity_id) as total_ordered');
+                       ->columns('(SELECT SUM(row_total) FROM ' . $index_prefix . 'sales_flat_order_item WHERE ' . $index_prefix . 'sales_flat_order_item.product_id = e.entity_id) as total_ordered');
         }
 
         if ($this->product_helper->isAttributeEnabled($additionalAttributes, 'rating_summary')) {
-            $collection->joinField('rating_summary', $index_prefix.'review_entity_summary', 'rating_summary',
-                'entity_pk_value=entity_id', '{{table}}.store_id='.$storeId, 'left');
+            $collection->joinField(
+                'rating_summary',
+                $index_prefix . 'review_entity_summary',
+                'rating_summary',
+                'entity_pk_value=entity_id',
+                '{{table}}.store_id=' . $storeId,
+                'left',
+            );
         }
 
         Mage::dispatchEvent(
             'meilisearch_before_products_collection_load',
-            array('collection' => $collection, 'store' => $storeId)
+            ['collection' => $collection, 'store' => $storeId],
         );
-        
-        $this->logger->start('LOADING '.$this->logger->getStoreName($storeId).' collection page '.$page.', pageSize '.$pageSize);
+
+        $this->logger->start('LOADING ' . $this->logger->getStoreName($storeId) . ' collection page ' . $page . ', pageSize ' . $pageSize);
 
         $collection->load();
 
-        $this->logger->log('Loaded '.count($collection).' products');
-        $this->logger->stop('LOADING '.$this->logger->getStoreName($storeId).' collection page '.$page.', pageSize '.$pageSize);
+        $this->logger->log('Loaded ' . count($collection) . ' products');
+        $this->logger->stop('LOADING ' . $this->logger->getStoreName($storeId) . ' collection page ' . $page . ', pageSize ' . $pageSize);
 
         $indexName = $this->product_helper->getIndexName($storeId, $useTmpIndex);
 
@@ -642,17 +749,17 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
             // Convert associative array to indexed array for Meilisearch
             $this->meilisearch_helper->addObjects(array_values($indexData['toIndex']), $indexName);
 
-            $this->logger->log('Product IDs: '.implode(', ', array_keys($indexData['toIndex'])));
+            $this->logger->log('Product IDs: ' . implode(', ', array_keys($indexData['toIndex'])));
             $this->logger->stop('ADD/UPDATE TO MEILISEARCH');
         }
 
         if (!empty($indexData['toRemove'])) {
-            $toRealRemove = array();
+            $toRealRemove = [];
 
             if (count($indexData['toRemove']) === 1) {
                 $toRealRemove = $indexData['toRemove'];
             } else {
-                $indexData['toRemove'] = array_map('strval', $indexData['toRemove']);
+                $indexData['toRemove'] = array_map(strval(...), $indexData['toRemove']);
 
                 foreach (array_chunk($indexData['toRemove'], 1000) as $chunk) {
                     $objects = $this->meilisearch_helper->getObjects($indexName, $chunk);
@@ -668,7 +775,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                 $this->logger->start('REMOVE FROM MEILISEARCH');
 
                 $this->meilisearch_helper->deleteObjects($toRealRemove, $indexName);
-                $this->logger->log('Product IDs: '.implode(', ', $toRealRemove));
+                $this->logger->log('Product IDs: ' . implode(', ', $toRealRemove));
 
                 $this->logger->stop('REMOVE FROM MEILISEARCH');
             }
@@ -685,7 +792,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
             $this->stopEmulation($emulationInfoPage);
         }
 
-        $this->logger->stop('rebuildStoreProductIndexPage '.$this->logger->getStoreName($storeId).' page '.$page.' pageSize '.$pageSize);
+        $this->logger->stop('rebuildStoreProductIndexPage ' . $this->logger->getStoreName($storeId) . ' page ' . $page . ' pageSize ' . $pageSize);
     }
 
     public function startEmulation($storeId)
@@ -699,10 +806,14 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
         $info->setInitialStoreId(Mage::app()->getStore()->getId());
         $info->setEmulatedStoreId($storeId);
-        $info->setUseProductFlat(Mage::getStoreConfigFlag(Mage_Catalog_Helper_Product_Flat::XML_PATH_USE_PRODUCT_FLAT,
-            $storeId));
-        $info->setUseCategoryFlat(Mage::getStoreConfigFlag(Mage_Catalog_Helper_Category_Flat::XML_PATH_IS_ENABLED_FLAT_CATALOG_CATEGORY,
-            $storeId));
+        $info->setUseProductFlat(Mage::getStoreConfigFlag(
+            Mage_Catalog_Helper_Product_Flat::XML_PATH_USE_PRODUCT_FLAT,
+            $storeId,
+        ));
+        $info->setUseCategoryFlat(Mage::getStoreConfigFlag(
+            Mage_Catalog_Helper_Category_Flat::XML_PATH_IS_ENABLED_FLAT_CATALOG_CATEGORY,
+            $storeId,
+        ));
         Mage::app()->setCurrentStore($storeId);
         Mage::app()->getStore($storeId)->setConfig(Mage_Catalog_Helper_Product_Flat::XML_PATH_USE_PRODUCT_FLAT, false);
         Mage::app()->getStore($storeId)
@@ -727,8 +838,10 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         Mage::app()->getStore($info->getEmulatedStoreId())
             ->setConfig(Mage_Catalog_Helper_Product_Flat::XML_PATH_USE_PRODUCT_FLAT, $info->getUseProductFlat());
         Mage::app()->getStore($info->getEmulatedStoreId())
-            ->setConfig(Mage_Catalog_Helper_Category_Flat::XML_PATH_IS_ENABLED_FLAT_CATALOG_CATEGORY,
-                $info->getUseCategoryFlat());
+            ->setConfig(
+                Mage_Catalog_Helper_Category_Flat::XML_PATH_IS_ENABLED_FLAT_CATALOG_CATEGORY,
+                $info->getUseCategoryFlat(),
+            );
 
         $appEmulation->stopEnvironmentEmulation($info);
         $this->logger->stop('STOP EMULATION');
@@ -744,28 +857,28 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
         return json_encode($translated);
     }
-    
+
     public function isX3Version()
     {
         if (method_exists('Mage', 'getEdition') === false) {
             return false;
         }
-            
+
         return Mage::EDITION_ENTERPRISE === Mage::getEdition() && version_compare(Mage::getVersion(), '1.14.3', '>=') ||
                Mage::EDITION_COMMUNITY === Mage::getEdition() && version_compare(Mage::getVersion(), '1.9.3', '>=');
     }
 
     private function setExtraSettings($storeId, $saveToTmpIndicesToo)
     {
-        $sections = array(
+        $sections = [
             'products' => $this->product_helper->getIndexName($storeId),
             'categories' => $this->category_helper->getIndexName($storeId),
             'pages' => $this->page_helper->getIndexName($storeId),
             'suggestions' => $this->suggestion_helper->getIndexName($storeId),
             'additional_sections' => $this->additionalsections_helper->getIndexName($storeId),
-        );
+        ];
 
-        $error = array();
+        $error = [];
         foreach ($sections as $section => $indexName) {
             try {
                 $extraSettings = $this->config->getExtraSettings($section, $storeId);
@@ -776,12 +889,12 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                     $this->meilisearch_helper->setSettings($indexName, $extraSettings, true);
 
                     if ($section === 'products' && $saveToTmpIndicesToo === true) {
-                        $this->meilisearch_helper->setSettings($indexName.'_tmp', $extraSettings, true);
+                        $this->meilisearch_helper->setSettings($indexName . '_tmp', $extraSettings, true);
                     }
                 }
             } catch (\MeilisearchSearch\MeilisearchException $e) {
-                if (strpos($e->getMessage(), 'Invalid object attributes:') === 0) {
-                    $error[] = 'Extra settings for "'.$section.'" indices were not saved. Error message: "'.$e->getMessage().'"';
+                if (str_starts_with($e->getMessage(), 'Invalid object attributes:')) {
+                    $error[] = 'Extra settings for "' . $section . '" indices were not saved. Error message: "' . $e->getMessage() . '"';
                     continue;
                 }
 
@@ -790,78 +903,8 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         }
 
         if (!empty($error)) {
-            throw new \MeilisearchSearch\MeilisearchException('<br>'.implode('<br> ', $error));
+            throw new \MeilisearchSearch\MeilisearchException('<br>' . implode('<br> ', $error));
         }
     }
 
-    public function deleteInactiveProducts($storeId)
-    {
-        $indexName = $this->product_helper->getIndexName($storeId);
-        $index = $this->meilisearch_helper->getIndex($indexName);
-
-        $objectIds = array();
-        $counter = 0;
-
-        try {
-            // MeiliSearch doesn't have a browse method, so we need to use search with pagination
-            $limit = 1000;
-            $offset = 0;
-            $hasMore = true;
-            
-            while ($hasMore) {
-                $searchResult = $index->search('', [
-                    'attributesToRetrieve' => ['objectID'],
-                    'limit' => $limit,
-                    'offset' => $offset
-                ]);
-                
-                $hits = $searchResult->getHits();
-                
-                if (empty($hits)) {
-                    $hasMore = false;
-                    break;
-                }
-                
-                foreach ($hits as $hit) {
-                    $objectIds[] = $hit['objectID'];
-                    $counter++;
-                }
-                
-                if ($counter >= 1000) {
-                    $this->deleteInactiveIds($storeId, $objectIds, $indexName);
-                    $objectIds = array();
-                    $counter = 0;
-                }
-                
-                $offset += $limit;
-                
-                // Check if we've retrieved all documents
-                if (count($hits) < $limit) {
-                    $hasMore = false;
-                }
-            }
-
-            if (!empty($objectIds)) {
-                $this->deleteInactiveIds($storeId, $objectIds, $indexName);
-            }
-        } catch (\MeilisearchSearch\MeilisearchException $e) {
-            $message = $e->getMessage();
-
-            // Fail silently if the exception tells that Index does not exist
-            if (!preg_match('/^Index (.*) does not exist$/', $message)) {
-                throw $e;
-            }
-        }
-    }
-
-    private function deleteInactiveIds($storeId, $objectIds, $indexName)
-    {
-        $collection = $this->product_helper->getProductCollectionQuery($storeId, $objectIds);
-        $dbIds = $collection->getAllIds();
-        
-        $collection = null;
-
-        $idsToDeleteFromMeilisearch = array_diff($objectIds, $dbIds);
-        $this->meilisearch_helper->deleteObjects($idsToDeleteFromMeilisearch, $indexName);
-    }
 }

@@ -31,8 +31,6 @@ class Meilisearch_Search_Model_Observer
 
     /**
      * On configuration save
-     *
-     * @param Varien_Event_Observer $observer
      */
     public function configSaved(Varien_Event_Observer $observer)
     {
@@ -46,7 +44,7 @@ class Meilisearch_Search_Model_Observer
 
     public function saveSettings($isFullProductReindex = false)
     {
-        if (is_object($isFullProductReindex) && get_class($isFullProductReindex) === 'Varien_Object') {
+        if (is_object($isFullProductReindex) && $isFullProductReindex::class === 'Varien_Object') {
             $eventData = $isFullProductReindex->getData();
             $isFullProductReindex = $eventData['isFullProductReindex'];
         }
@@ -63,7 +61,7 @@ class Meilisearch_Search_Model_Observer
     {
         $req = Mage::app()->getRequest();
 
-        if (strpos($req->getPathInfo(), 'system_config/edit/section/meilisearch') !== false) {
+        if (str_contains($req->getPathInfo(), 'system_config/edit/section/meilisearch')) {
             $observer->getData('layout')->getUpdate()->addHandle('meilisearch_bundle_handle');
         }
     }
@@ -71,7 +69,6 @@ class Meilisearch_Search_Model_Observer
     /**
      * Call meilisearch.xml to load JS / CSS / PHTMLs
      *
-     * @param Varien_Event_Observer $observer
      * @return $this
      */
     public function useMeilisearchSearchPopup(Varien_Event_Observer $observer)
@@ -123,7 +120,6 @@ class Meilisearch_Search_Model_Observer
 
     /**
      * @event cms_page_save_commit_after
-     * @param Varien_Event_Observer $observer
      */
     public function savePage(Varien_Event_Observer $observer)
     {
@@ -144,7 +140,7 @@ class Meilisearch_Search_Model_Observer
             if ($storeId == 0) {
                 $storeId = null;
             }
-            $engine->rebuildPages($storeId, array($page->getPageId()));
+            $engine->rebuildPages($storeId, [$page->getPageId()]);
         }
     }
 
@@ -202,8 +198,12 @@ class Meilisearch_Search_Model_Observer
             }
         } else {
             if (!empty($page) && !empty($pageSize)) {
-                $this->helper->rebuildStoreSuggestionIndexPage($storeId,
-                    $this->suggestion_helper->getSuggestionCollectionQuery($storeId), $page, $pageSize);
+                $this->helper->rebuildStoreSuggestionIndexPage(
+                    $storeId,
+                    $this->suggestion_helper->getSuggestionCollectionQuery($storeId),
+                    $page,
+                    $pageSize,
+                );
             } else {
                 $this->helper->rebuildStoreSuggestionIndex($storeId);
             }
@@ -237,8 +237,12 @@ class Meilisearch_Search_Model_Observer
             }
         } else {
             if (!empty($page) && !empty($pageSize)) {
-                $this->helper->rebuildStoreCategoryIndexPage($storeId,
-                    $this->category_helper->getCategoryCollectionQuery($storeId, $categoryIds), $page, $pageSize);
+                $this->helper->rebuildStoreCategoryIndexPage(
+                    $storeId,
+                    $this->category_helper->getCategoryCollectionQuery($storeId, $categoryIds),
+                    $page,
+                    $pageSize,
+                );
             } else {
                 $this->helper->rebuildStoreCategoryIndex($storeId, $categoryIds);
             }
@@ -360,5 +364,94 @@ class Meilisearch_Search_Model_Observer
         }
 
         return false;
+    }
+
+    /**
+     * Cron: clean junk queries then rebuild suggestions index for all active stores.
+     * Runs daily at 3am via crontab config.
+     */
+    public function cronRebuildSuggestions()
+    {
+        if (!$this->config->isEnabledBackend()) {
+            return;
+        }
+
+        $this->cleanJunkSearchQueries();
+
+        /** @var Meilisearch_Search_Helper_Data $helper */
+        $helper = Mage::helper('meilisearch_search');
+
+        foreach (Mage::app()->getStores() as $store) {
+            if (!$store->getIsActive()) {
+                continue;
+            }
+            if (!$this->config->isEnabledBackend($store->getId())) {
+                continue;
+            }
+
+            try {
+                $helper->rebuildStoreSuggestionIndex($store->getId());
+                // Wait for Meilisearch to finish indexing before swapping
+                sleep(3);
+                $helper->moveStoreSuggestionIndex($store->getId());
+                Mage::log(
+                    'Meilisearch: suggestions rebuilt for store ' . $store->getCode(),
+                    6,
+                    'meilisearch.log',
+                );
+            } catch (\Exception $e) {
+                Mage::logException($e);
+            }
+        }
+    }
+
+    /**
+     * Remove junk/bot search queries from catalogsearch_query.
+     *
+     * Cleans: URLs, SQL injection attempts, HTML/script tags, encoded queries (+),
+     * excessively long queries, promo text, and very low popularity garbage.
+     */
+    private function cleanJunkSearchQueries(): void
+    {
+        $resource = Mage::getSingleton('core/resource');
+        $write = $resource->getConnection('core_write');
+        $table = $resource->getTableName('catalogsearch/search_query');
+
+        $deleted = 0;
+
+        // URLs and spam
+        $deleted += $write->delete($table, "query_text LIKE '%http%' OR query_text LIKE '%www.%'");
+
+        // Script injection attempts
+        $deleted += $write->delete($table, "query_text LIKE '%<script%' OR query_text LIKE '%</%'");
+
+        // SQL injection patterns
+        $deleted += $write->delete($table, "query_text LIKE '%SELECT %' OR query_text LIKE '%UNION %' OR query_text LIKE '%DROP %'");
+
+        // Encoded queries (Magento URL artifacts with +)
+        $deleted += $write->delete($table, "query_text LIKE '%+%'");
+
+        // Quoted queries (not useful for suggestions)
+        $deleted += $write->delete($table, "query_text LIKE '\"%' OR query_text LIKE '%\"'");
+
+        // Excessively long queries (> 60 chars — real searches are shorter)
+        $deleted += $write->delete($table, 'LENGTH(query_text) > 60');
+
+        // Very short queries (1-2 chars — likely typos/bots)
+        $deleted += $write->delete($table, 'LENGTH(query_text) < 3');
+
+        // Queries with 0 results and low popularity (dead ends)
+        $deleted += $write->delete($table, 'num_results = 0 AND popularity < 10');
+
+        // Promo text fragments
+        $deleted += $write->delete($table, "query_text LIKE '%Buy %' OR query_text LIKE '%Free!%' OR query_text LIKE '%OFF code%'");
+
+        if ($deleted > 0) {
+            Mage::log(
+                "Meilisearch: cleaned {$deleted} junk search queries",
+                6,
+                'meilisearch.log',
+            );
+        }
     }
 }

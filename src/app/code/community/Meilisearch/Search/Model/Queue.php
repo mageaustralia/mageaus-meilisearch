@@ -2,10 +2,10 @@
 
 class Meilisearch_Search_Model_Queue
 {
-    const SUCCESS_LOG = 'meilisearch_queue_log.txt';
-    const ERROR_LOG = 'meilisearch_queue_errors.log';
+    public const SUCCESS_LOG = 'meilisearch_queue_log.txt';
+    public const ERROR_LOG = 'meilisearch_queue_errors.log';
 
-    const UNLOCK_STACKED_JOBS_AFTER_MINUTES = 15;
+    public const UNLOCK_STACKED_JOBS_AFTER_MINUTES = 15;
 
     protected $table;
     protected $logTable;
@@ -22,18 +22,18 @@ class Meilisearch_Search_Model_Queue
 
     protected $maxSingleJobDataSize;
 
-    private $staticJobMethods = array(
+    private $staticJobMethods = [
         'saveSettings',
         'moveProductsTmpIndex',
         'deleteProductsStoreIndices',
         'removeCategories',
         'deleteCategoriesStoreIndices',
         'moveStoreSuggestionIndex',
-    );
+    ];
 
     private $noOfFailedJobs = 0;
 
-    private $logRecord = array();
+    private $logRecord = [];
 
     public function __construct()
     {
@@ -55,14 +55,14 @@ class Meilisearch_Search_Model_Queue
     public function add($class, $method, $data, $data_size)
     {
         // Insert a row for the new job
-        $this->db->insert($this->table, array(
+        $this->db->insert($this->table, [
             'created'   => date('Y-m-d H:i:s'),
             'class'     => $class,
             'method'    => $method,
             'data'      => json_encode($data),
             'data_size' => $data_size,
             'pid'       => null,
-        ));
+        ]);
     }
 
     /**
@@ -77,8 +77,8 @@ class Meilisearch_Search_Model_Queue
     {
         $data = $this->db->query(
             $this->db->select()
-                ->from($this->logTable, array('number_of_runs' => 'COUNT(duration)', 'average_time' => 'AVG(duration)'))
-                ->where('processed_jobs > 0 AND with_empty_queue = 0 AND started >= (CURDATE() - INTERVAL 2 DAY)')
+                ->from($this->logTable, ['number_of_runs' => 'COUNT(duration)', 'average_time' => 'AVG(duration)'])
+                ->where('processed_jobs > 0 AND with_empty_queue = 0 AND started >= (CURDATE() - INTERVAL 2 DAY)'),
         );
         $result = $data->fetch();
 
@@ -96,11 +96,11 @@ class Meilisearch_Search_Model_Queue
         $this->clearOldLogRecords();
         $this->unlockStackedJobs();
 
-        $this->logRecord = array(
+        $this->logRecord = [
             'started' => date('Y-m-d H:i:s'),
             'processed_jobs' => 0,
             'with_empty_queue' => 0,
-        );
+        ];
 
         $started = time();
 
@@ -119,7 +119,6 @@ class Meilisearch_Search_Model_Queue
 
         $this->db->insert($this->logTable, $this->logRecord);
 
-        // Connection management handled automatically by Maho
     }
 
     public function run($maxJobs)
@@ -139,7 +138,7 @@ class Meilisearch_Search_Model_Queue
             // and therefore are not indexed yet in TMP index
             if ($job['method'] === 'moveProductsTmpIndex' && $this->noOfFailedJobs > 0) {
                 // Set pid to NULL so it's not deleted after
-                $this->db->query("UPDATE {$this->db->quoteIdentifier($this->table, true)} SET pid = NULL, locked_at = NULL WHERE job_id = ".$job['job_id']);
+                $this->db->query("UPDATE {$this->db->quoteIdentifier($this->table, true)} SET pid = NULL, locked_at = NULL WHERE job_id = " . $job['job_id']);
 
                 continue;
             }
@@ -150,7 +149,7 @@ class Meilisearch_Search_Model_Queue
                 $model->{$method}(new Varien_Object($job['data']));
 
                 // Delete one by one
-                $this->db->delete($this->table, array('job_id IN (?)' => $job['merged_ids']));
+                $this->db->delete($this->table, ['job_id IN (?)' => $job['merged_ids']]);
 
 
                 $this->logRecord['processed_jobs'] += count($job['merged_ids']);
@@ -164,7 +163,7 @@ class Meilisearch_Search_Model_Queue
                      Parameters: ' . json_encode($job['data']);
                 $this->logger->log($logMessage);
 
-                $logMessage = date('c') . ' ERROR: ' . get_class($e) . ': 
+                $logMessage = date('c') . ' ERROR: ' . $e::class . ': 
                     ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() .
                     "\nStack trace:\n" . $e->getTraceAsString();
                 $this->logger->log($logMessage);
@@ -172,7 +171,7 @@ class Meilisearch_Search_Model_Queue
                 // Increment retries, set the job ID back to NULL
                 $updateQuery = "UPDATE {$this->db->quoteIdentifier($this->table, true)} 
                   SET pid = NULL, locked_at = NULL, retries = retries + 1 , error_log = '" . addslashes($logMessage) . "'
-                  WHERE job_id IN (".implode(', ', (array) $job['merged_ids']).")";
+                  WHERE job_id IN (" . implode(', ', (array) $job['merged_ids']) . ')';
                 $this->db->query($updateQuery);
             }
         }
@@ -191,7 +190,7 @@ class Meilisearch_Search_Model_Queue
             "INSERT INTO {$this->archiveTable} (pid, class, method, data, error_log, data_size, created_at) 
                   SELECT pid, class, method, data, error_log, data_size, NOW()
                   FROM {$this->table}
-                  WHERE " . $whereClause
+                  WHERE " . $whereClause,
         );
     }
 
@@ -208,7 +207,7 @@ class Meilisearch_Search_Model_Queue
             $this->db->delete($this->table, 'retries > max_retries');
         }
 
-        $jobs = array();
+        $jobs = [];
 
         $limit = $maxJobs = ($maxJobs === -1) ? $this->config->getNumberOfJobToRun() : $maxJobs;
         $offset = 0;
@@ -221,7 +220,7 @@ class Meilisearch_Search_Model_Queue
 
             while ($actualBatchSize < $maxBatchSize) {
                 $data = $this->db->query($this->db->select()->from($this->table, '*')->where('pid IS NULL')
-                                                  ->order(array('job_id'))->limit($limit, $offset)
+                                                  ->order(['job_id'])->limit($limit, $offset)
                                                   ->forUpdate());
                 $rawJobs = $data->fetchAll();
                 $rowsCount = count($rawJobs);
@@ -241,7 +240,7 @@ class Meilisearch_Search_Model_Queue
 
                 // $jobs will always be completely set from $rawJobs
                 // Without resetting not-merged jobs would be stacked
-                $jobs = array();
+                $jobs = [];
 
                 if (count($rawJobs) == $maxJobs) {
                     $jobs = $rawJobs;
@@ -265,7 +264,7 @@ class Meilisearch_Search_Model_Queue
             $this->db->commit();
         } catch (\Exception $e) {
             $this->db->rollBack();
-            // Connection management handled automatically by Maho
+            $this->db->closeConnection();
 
             throw $e;
         }
@@ -276,7 +275,7 @@ class Meilisearch_Search_Model_Queue
     private function prepareJobs($jobs)
     {
         foreach ($jobs as &$job) {
-            $job['data'] = json_decode($job['data'], true);
+            $job['data'] = json_decode((string) $job['data'], true);
             $job['merged_ids'][] = $job['job_id'];
         }
 
@@ -287,7 +286,7 @@ class Meilisearch_Search_Model_Queue
     {
         $oldJobs = $this->sortJobs($oldJobs);
 
-        $jobs = array();
+        $jobs = [];
 
         $currentJob = array_shift($oldJobs);
         $nextJob = null;
@@ -333,13 +332,13 @@ class Meilisearch_Search_Model_Queue
 
     private function sortJobs($oldJobs)
     {
-        $sortedJobs = array();
+        $sortedJobs = [];
 
-        $tempSortableJobs = array();
+        $tempSortableJobs = [];
         foreach ($oldJobs as $job) {
             if (in_array($job['method'], $this->staticJobMethods, true)) {
                 $sortedJobs = $this->stackSortedJobs($sortedJobs, $tempSortableJobs, $job);
-                $tempSortableJobs = array();
+                $tempSortableJobs = [];
 
                 continue;
             }
@@ -366,7 +365,7 @@ class Meilisearch_Search_Model_Queue
         $sortedJobs = array_merge($sortedJobs, $tempSortableJobs);
 
         if ($job !== null) {
-            $sortedJobs = array_merge($sortedJobs, array($job));
+            $sortedJobs = array_merge($sortedJobs, [$job]);
         }
 
         return $sortedJobs;
@@ -413,7 +412,7 @@ class Meilisearch_Search_Model_Queue
 
         foreach ($args as $n => $field) {
             if (is_string($field)) {
-                $tmp = array();
+                $tmp = [];
 
                 foreach ($data as $key => $row) {
                     $tmp[$key] = $row[$field];
@@ -425,7 +424,7 @@ class Meilisearch_Search_Model_Queue
 
         $args[] = &$data;
 
-        call_user_func_array('array_multisort', $args);
+        call_user_func_array(array_multisort(...), $args);
 
         return array_pop($args);
     }
@@ -437,12 +436,12 @@ class Meilisearch_Search_Model_Queue
     {
         $jobsIds = $this->getJobsIdsFromMergedJobs($jobs);
 
-        if ($jobsIds !== array()) {
+        if ($jobsIds !== []) {
             $pid = getmypid();
-            $this->db->update($this->table, array(
+            $this->db->update($this->table, [
                 'pid' => $pid,
                 'locked_at' => date('Y-m-d H:i:s'),
-            ), array('job_id IN (?)' => $jobsIds));
+            ], ['job_id IN (?)' => $jobsIds]);
         }
     }
 
@@ -453,7 +452,7 @@ class Meilisearch_Search_Model_Queue
      */
     private function getJobsIdsFromMergedJobs($mergedJobs)
     {
-        $jobsIds = array();
+        $jobsIds = [];
         foreach ($mergedJobs as $job) {
             $jobsIds = array_merge($jobsIds, $job['merged_ids']);
         }
@@ -463,11 +462,11 @@ class Meilisearch_Search_Model_Queue
 
     private function clearOldLogRecords()
     {
-        $idsToDelete = $this->db->query("SELECT id FROM {$this->logTable} ORDER BY started DESC, id DESC LIMIT 25000, ".PHP_INT_MAX)
+        $idsToDelete = $this->db->query("SELECT id FROM {$this->logTable} ORDER BY started DESC, id DESC LIMIT 25000, " . PHP_INT_MAX)
                         ->fetchAll(\PDO::FETCH_COLUMN, 0);
 
         if ($idsToDelete) {
-            $this->db->query("DELETE FROM {$this->logTable} WHERE id IN (" . implode(", ", $idsToDelete) . ")");
+            $this->db->query("DELETE FROM {$this->logTable} WHERE id IN (" . implode(', ', $idsToDelete) . ')');
         }
     }
 
@@ -481,9 +480,9 @@ class Meilisearch_Search_Model_Queue
 
     private function unlockStackedJobs()
     {
-        $this->db->update($this->table, array(
+        $this->db->update($this->table, [
             'locked_at' => null,
             'pid' => null,
-        ), 'locked_at < (NOW() - INTERVAL ' . self::UNLOCK_STACKED_JOBS_AFTER_MINUTES . ' MINUTE)');
+        ], 'locked_at < (NOW() - INTERVAL ' . self::UNLOCK_STACKED_JOBS_AFTER_MINUTES . ' MINUTE)');
     }
 }

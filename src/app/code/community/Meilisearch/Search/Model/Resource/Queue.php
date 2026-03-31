@@ -1,7 +1,8 @@
 <?php
+
 /**
  * MeiliSearch Queue Resource Model
- * 
+ *
  * @category    Meilisearch
  * @package     Meilisearch_Search
  * @copyright   Copyright (c) 2025 Maho (https://mahocommerce.com)

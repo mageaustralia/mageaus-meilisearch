@@ -7,6 +7,7 @@ class Meilisearch_Search_Model_Resource_Fulltext_Collection extends Mage_Catalog
      *
      * @return array|Meilisearch_Search_Model_Resource_Fulltext_Collection
      */
+    #[\Override]
     public function getFoundIds()
     {
         if (!$this->_helper()->isX3Version()) {
@@ -21,20 +22,20 @@ class Meilisearch_Search_Model_Resource_Fulltext_Collection extends Mage_Catalog
             }
             return parent::getFoundIds();
         }
-        
+
         $query = $this->_getQuery();
         if (is_null($this->_foundData) && !empty($query) && $query instanceof Mage_CatalogSearch_Model_Query) {
             $data = $this->getMeilisearchData($query->getQueryText());
             if (false === $data) {
                 return parent::getFoundIds();
             }
-            
+
             $this->_foundData = $data;
         }
-        
+
         return parent::getFoundIds();
     }
-    
+
     /**
      * @return Meilisearch_Search_Helper_Data
      */
@@ -58,7 +59,7 @@ class Meilisearch_Search_Model_Resource_Fulltext_Collection extends Mage_Catalog
             return false;
         }
 
-        $data = array();
+        $data = [];
 
         if ($config->isInstantEnabled($storeId) === false || $config->makeSeoRequest($storeId)) {
             $meilisearch_query = $query !== '__empty__' ? $query : '';
@@ -81,9 +82,10 @@ class Meilisearch_Search_Model_Resource_Fulltext_Collection extends Mage_Catalog
 
     /**
      * Get query text
-     * 
+     *
      * @return string|null
      */
+    #[\Override]
     protected function _getQuery()
     {
         $query = Mage::helper('catalogsearch')->getQuery();
@@ -98,6 +100,7 @@ class Meilisearch_Search_Model_Resource_Fulltext_Collection extends Mage_Catalog
      *
      * @return Meilisearch_Search_Model_Resource_Fulltext_Collection
      */
+    #[\Override]
     public function addSearchFilter($query)
     {
         if ($this->_helper()->isX3Version()) {
@@ -111,9 +114,9 @@ class Meilisearch_Search_Model_Resource_Fulltext_Collection extends Mage_Catalog
         $sortedIds = array_reverse(array_keys($data));
 
         if (!empty($sortedIds)) {
-            $this->getSelect()->columns(array(
+            $this->getSelect()->columns([
                 'relevance' => new Maho\Db\Expr("FIND_IN_SET(e.entity_id, '" . implode(',', $sortedIds) . "')"),
-            ));
+            ]);
             $this->getSelect()->where('e.entity_id IN (?)', $sortedIds);
         } else {
             // No results, return empty collection

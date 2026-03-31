@@ -4,20 +4,20 @@ class Meilisearch_Search_Block_System_Config_Form_Field_OnewaySynonyms extends M
 {
     public function __construct()
     {
-        $this->settings = array(
-            'columns' => array(
-                'input' => array(
+        $this->settings = [
+            'columns' => [
+                'input' => [
                     'label' => 'Input',
                     'style' => 'width: 100px;',
-                ),
-                'synonyms' => array(
+                ],
+                'synonyms' => [
                     'label' => 'Synonyms (comma-separated)',
                     'style' => 'width: 435px;',
-                ),
-            ),
+                ],
+            ],
             'buttonLabel' => 'Add One-way Synonyms',
             'addAfter'    => false,
-        );
+        ];
 
         parent::__construct();
     }

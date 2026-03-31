@@ -13,12 +13,12 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue extends Mage_Adminhtml_Bl
         parent::__construct();
 
         $this->_removeButton('add');
-        $this->_addButton('clear_queue', array(
+        $this->_addButton('clear_queue', [
             'label' => Mage::helper('meilisearch_search')->__('Clear Queue'),
             'onclick' => "if (confirm('Are you sure you want to clear the queue? This operation cannot be reverted.')) { 
                 location.href='" . $this->getUrl('*/*/clear') . "' };",
             'class' => 'cancel',
-        ));
+        ]);
     }
 
     /**
@@ -26,6 +26,7 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue extends Mage_Adminhtml_Bl
      *
      * @return string
      */
+    #[\Override]
     public function getHeaderText()
     {
         return Mage::helper('meilisearch_search')->__('Meilisearch Search - Indexing Queue');
@@ -36,6 +37,7 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue extends Mage_Adminhtml_Bl
      *
      * @return string
      */
+    #[\Override]
     public function getHeaderCssClass()
     {
         return 'icon-head meilisearch-head-icon';

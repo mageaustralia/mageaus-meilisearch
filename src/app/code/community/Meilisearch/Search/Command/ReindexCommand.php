@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Maho Command for Meilisearch reindexing
- * 
+ *
  * @category  Meilisearch
  * @package   Meilisearch_Search
  * @copyright Copyright (c) 2024 Maho (https://mahocommerce.com)
@@ -19,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
     name: 'meilisearch:reindex',
-    description: 'Reindex Meilisearch search indexes'
+    description: 'Reindex Meilisearch search indexes',
 )]
 class Meilisearch_Search_Command_ReindexCommand extends Command
 {
@@ -35,19 +36,19 @@ class Meilisearch_Search_Command_ReindexCommand extends Command
         $type = $input->getArgument('type');
         $storeId = $input->getOption('store');
         $clear = $input->getOption('clear');
-        
+
         /** @var Meilisearch_Search_Model_Resource_Engine $engine */
         $engine = Mage::getResourceSingleton('meilisearch_search/engine');
-        
+
         /** @var Meilisearch_Search_Helper_Config $config */
         $config = Mage::helper('meilisearch_search/config');
-        
+
         // Check if module is enabled
         if (!$config->isModuleOutputEnabled()) {
             $output->writeln('<error>Meilisearch module is disabled</error>');
             return Command::FAILURE;
         }
-        
+
         try {
             switch ($type) {
                 case 'products':
@@ -55,7 +56,7 @@ class Meilisearch_Search_Command_ReindexCommand extends Command
                     $engine->rebuildProducts($storeId);
                     $output->writeln('<info>Products reindexed successfully</info>');
                     break;
-                    
+
                 case 'categories':
                     if ($storeId) {
                         $output->writeln('<comment>Store option is ignored for categories</comment>');
@@ -64,7 +65,7 @@ class Meilisearch_Search_Command_ReindexCommand extends Command
                     $engine->rebuildCategories();
                     $output->writeln('<info>Categories reindexed successfully</info>');
                     break;
-                    
+
                 case 'pages':
                     if ($storeId) {
                         $output->writeln('<comment>Store option is ignored for pages</comment>');
@@ -73,31 +74,31 @@ class Meilisearch_Search_Command_ReindexCommand extends Command
                     $engine->rebuildPages();
                     $output->writeln('<info>Pages reindexed successfully</info>');
                     break;
-                    
+
                 case 'all':
                     $output->writeln('<info>Reindexing all entities' . ($storeId ? " for store ID $storeId" : ' for all stores') . '...</info>');
-                    
+
                     $output->writeln('<info>Reindexing products...</info>');
                     $engine->rebuildProducts($storeId);
-                    
+
                     if (!$storeId) {
                         $output->writeln('<info>Reindexing categories...</info>');
                         $engine->rebuildCategories();
-                        
+
                         $output->writeln('<info>Reindexing pages...</info>');
                         $engine->rebuildPages();
                     }
-                    
+
                     $output->writeln('<info>All entities reindexed successfully</info>');
                     break;
-                    
+
                 default:
                     $output->writeln('<error>Unknown reindex type: ' . $type . '</error>');
                     return Command::FAILURE;
             }
-            
+
             return Command::SUCCESS;
-            
+
         } catch (Exception $e) {
             $output->writeln('<error>Error during reindexing: ' . $e->getMessage() . '</error>');
             return Command::FAILURE;

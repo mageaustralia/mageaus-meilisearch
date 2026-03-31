@@ -83,6 +83,7 @@ abstract class Meilisearch_Search_Model_Indexer_Abstract extends Mage_Index_Mode
     /**
      * @return Mage_CatalogSearch_Model_Resource_Indexer_Fulltext
      */
+    #[\Override]
     protected function _getResource()
     {
         return Mage::getResourceSingleton('catalogsearch/indexer_fulltext');
