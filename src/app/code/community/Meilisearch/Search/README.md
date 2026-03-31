@@ -142,6 +142,7 @@ The analytics dashboard shows:
 - Top clicked products (last 30 days)
 - Popular searches (all time, from `catalogsearch_query`)
 - Zero-result queries
+- Recent clicks (last 50)
 
 > **Note:** The click tracking route uses `/msearchtrack/` (not `/meilisearch/`) to avoid conflicts with nginx proxy rules that forward `/meilisearch/` directly to the Meilisearch server.
 
@@ -154,8 +155,8 @@ If you proxy `/meilisearch/` directly to your Meilisearch server in nginx (commo
 | Event | Handler | Description |
 |-------|---------|-------------|
 | `controller_action_layout_load_before` | `useMeilisearchSearchPopup` | Injects the Meilisearch autocomplete UI |
-| `adminhtml_cms_page_save_after` | `savePage` | Queues CMS page for re-indexing |
-| `catalog_product_save_after` | `saveProduct` | Queues product for re-indexing |
+| `cms_page_save_commit_after` | `savePage` | Queues CMS page for re-indexing |
+| `catalog_product_save_before` | `saveProduct` | Queues product for re-indexing |
 | `admin_system_config_changed_section_meilisearch` | `configSaved` | Pushes updated settings to Meilisearch indexes |
 
 ## Filterable Attributes
