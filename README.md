@@ -2,6 +2,10 @@
 
 Integrates [Meilisearch](https://www.meilisearch.com/) with Maho Commerce (OpenMage/Magento 1) to provide fast, typo-tolerant search with autocomplete, instant search results, and search analytics.
 
+## Screenshots
+
+![Meilisearch product attribute configuration](screenshots/config-product-attributes.png)
+
 ## Requirements
 
 - Maho Commerce (PHP 8.3+)
