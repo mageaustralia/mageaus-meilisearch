@@ -10,10 +10,6 @@
             <action method="addJs"><script>meilisearch/meilisearch-client.js</script></action>
             <action method="addJs"><script>meilisearch/meilisearch-search.js</script></action>
         </reference>
-
-        <reference name="content">
-            <block type="core/template" before="content" template="meilisearch/internals/beforecontent.phtml" name="meilisearch-beforecontent"/>
-        </reference>
     </meilisearch_search_handle>
 
     <meilisearch_search_handle_with_topsearch>
@@ -21,16 +17,6 @@
             <action method="setTemplate"><template>meilisearch/autocomplete.phtml</template></action>
         </reference>
     </meilisearch_search_handle_with_topsearch>
-
-    <meilisearch_search_handle_autocomplete>
-        <reference name="head">
-        </reference>
-    </meilisearch_search_handle_autocomplete>
-
-    <meilisearch_search_handle_instantsearch>
-        <reference name="head">
-        </reference>
-    </meilisearch_search_handle_instantsearch>
 
     <meilisearch_search_handle_prevent_backend_rendering>
         <reference name="left_first">

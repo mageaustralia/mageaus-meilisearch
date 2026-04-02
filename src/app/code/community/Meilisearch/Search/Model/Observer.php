@@ -73,35 +73,20 @@ class Meilisearch_Search_Model_Observer
      */
     public function useMeilisearchSearchPopup(Varien_Event_Observer $observer)
     {
-
-        Mage::log('DEBUG: useMeilisearchSearchPopup called', Mage::LOG_DEBUG, 'meilisearch_debug.log');
-
         if (!$this->config->isEnabledFrontEnd()) {
-            Mage::log('DEBUG: Frontend NOT enabled', Mage::LOG_DEBUG, 'meilisearch_debug.log');
             return $this;
         }
-
-        Mage::log('DEBUG: Frontend IS enabled', Mage::LOG_DEBUG, 'meilisearch_debug.log');
 
         $storeId = Mage::app()->getStore()->getId();
         if (!$this->config->getServerUrl($storeId) || !$this->config->getAPIKey($storeId)) {
-            Mage::log('DEBUG: Server URL or API Key missing', Mage::LOG_DEBUG, 'meilisearch_debug.log');
             return $this;
         }
-
-        Mage::log('DEBUG: Server URL and API Key present', Mage::LOG_DEBUG, 'meilisearch_debug.log');
 
         $this->loadMeilisearchSearchHandle($observer);
 
         $this->loadSearchFormHandle($observer);
 
-        $this->loadInstantSearchHandle($observer);
-
-        $this->loadAutocompleteHandle($observer);
-
         $this->loadPreventBackendRenderingHandle($observer);
-
-        $this->loadAnalyticsHandle($observer);
 
         return $this;
     }
@@ -290,17 +275,10 @@ class Meilisearch_Search_Model_Observer
 
     private function loadMeilisearchSearchHandle(Varien_Event_Observer $observer)
     {
-        Mage::log('DEBUG: loadMeilisearchSearchHandle called', Mage::LOG_DEBUG, 'meilisearch_debug.log');
-        Mage::log('DEBUG: Popup=' . ($this->config->isPopupEnabled() ? 'YES' : 'NO'), Mage::LOG_DEBUG, 'meilisearch_debug.log');
-        Mage::log('DEBUG: Instant=' . ($this->config->isInstantEnabled() ? 'YES' : 'NO'), Mage::LOG_DEBUG, 'meilisearch_debug.log');
-        Mage::log('DEBUG: Autocomplete=' . ($this->config->isAutoCompleteEnabled() ? 'YES' : 'NO'), Mage::LOG_DEBUG, 'meilisearch_debug.log');
-
         if (!$this->config->isPopupEnabled() && !$this->config->isInstantEnabled() && !$this->config->isAutoCompleteEnabled()) {
-            Mage::log('DEBUG: None enabled, skipping handle', Mage::LOG_DEBUG, 'meilisearch_debug.log');
             return;
         }
 
-        Mage::log('DEBUG: Adding meilisearch_search_handle', Mage::LOG_DEBUG, 'meilisearch_debug.log');
         $observer->getData('layout')->getUpdate()->addHandle('meilisearch_search_handle');
     }
 
@@ -311,27 +289,6 @@ class Meilisearch_Search_Model_Observer
         }
 
         $observer->getData('layout')->getUpdate()->addHandle('meilisearch_search_handle_with_topsearch');
-    }
-
-    private function loadInstantSearchHandle(Varien_Event_Observer $observer)
-    {
-        if (!$this->config->isInstantEnabled()) {
-            return;
-        }
-
-        $category = Mage::registry('current_category');
-        if ($this->config->replaceCategories() && $category && $category->getDisplayMode() === 'PAGE') {
-            return;
-        }
-
-        $observer->getData('layout')->getUpdate()->addHandle('meilisearch_search_handle_instantsearch');
-    }
-
-    private function loadAutocompleteHandle(Varien_Event_Observer $observer)
-    {
-        if ($this->config->isPopupEnabled() || $this->config->isAutoCompleteEnabled()) {
-            $observer->getData('layout')->getUpdate()->addHandle('meilisearch_search_handle_autocomplete');
-        }
     }
 
     private function loadPreventBackendRenderingHandle(Varien_Event_Observer $observer)
@@ -347,12 +304,6 @@ class Meilisearch_Search_Model_Observer
         }
 
         $observer->getData('layout')->getUpdate() ->addHandle('meilisearch_search_handle_prevent_backend_rendering');
-    }
-
-    private function loadAnalyticsHandle(Varien_Event_Observer $observer)
-    {
-        // Click & Conversion Analytics removed - was Algolia-specific
-        return;
     }
 
     private function isIndexerInManualMode($indexerCode)
