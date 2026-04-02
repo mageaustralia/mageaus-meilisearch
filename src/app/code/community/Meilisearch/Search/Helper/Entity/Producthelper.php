@@ -213,7 +213,7 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
         $attributesForFaceting = [];
 
         // Always add configured barcode attribute and child barcodes as searchable (for POS barcode scanning)
-        $barcodeAttributeCode = Mage::helper('maho_pos')->getBarcodeAttributeCode();
+        $barcodeAttributeCode = Mage::helper('core')->isModuleEnabled('Maho_Pos') ? Mage::helper('maho_pos')->getBarcodeAttributeCode() : 'gtin';
         $searchableAttributes[] = $barcodeAttributeCode;
         $searchableAttributes[] = 'child_' . $barcodeAttributeCode;
 
@@ -1172,7 +1172,7 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
             $childBarcodes = [];
 
             // Get configured barcode attribute code
-            $barcodeAttributeCode = Mage::helper('maho_pos')->getBarcodeAttributeCode();
+            $barcodeAttributeCode = Mage::helper('core')->isModuleEnabled('Maho_Pos') ? Mage::helper('maho_pos')->getBarcodeAttributeCode() : 'gtin';
 
             // Check if barcode attribute exists before trying to access it
             $barcodeAttribute = $product->getResource()->getAttribute($barcodeAttributeCode);
