@@ -933,9 +933,7 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
                 $this->logger->log($e->getMessage());
                 $this->logger->log($e->getTraceAsString());
 
-                $placeholderUrl = Mage::getDesign()->getSkinUrl($thumb->getPlaceholder());
-
-                $customData['thumbnail_url'] = $imageHelper->removeProtocol($placeholderUrl);
+                $customData['thumbnail_url'] = '';
             }
         }
 
@@ -949,9 +947,7 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
                 $this->logger->log($e->getMessage());
                 $this->logger->log($e->getTraceAsString());
 
-                $placeholderUrl = Mage::getDesign()->getSkinUrl($smallImage->getPlaceholder());
-
-                $customData['small_image_url'] = $imageHelper->removeProtocol($placeholderUrl);
+                $customData['small_image_url'] = '';
             }
         }
 
@@ -965,9 +961,7 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
                 $this->logger->log($e->getMessage());
                 $this->logger->log($e->getTraceAsString());
 
-                $placeholderUrl = Mage::getDesign()->getSkinUrl($image->getPlaceholder());
-
-                $customData['image_url'] = $imageHelper->removeProtocol($placeholderUrl);
+                $customData['image_url'] = '';
             }
 
             if ($this->isAttributeEnabled($additionalAttributes, 'media_gallery')) {
