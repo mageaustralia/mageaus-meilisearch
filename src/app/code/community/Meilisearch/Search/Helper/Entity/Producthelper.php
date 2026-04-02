@@ -926,11 +926,10 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
 
         if (false === isset($defaultData['thumbnail_url'])) {
             /** @var Meilisearch_Search_Helper_Image $thumb */
-            $thumb = $imageHelper->init($product, 'thumbnail')->resize(100, 100);
-
             try {
+                $thumb = $imageHelper->init($product, 'thumbnail')->resize(100, 100);
                 $customData['thumbnail_url'] = (string) $thumb;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->log($e->getMessage());
                 $this->logger->log($e->getTraceAsString());
 
@@ -943,11 +942,10 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
         // Small image for category listings (400x400 for good quality at ~300px display)
         if (false === isset($defaultData['small_image_url'])) {
             /** @var Meilisearch_Search_Helper_Image $smallImage */
-            $smallImage = $imageHelper->init($product, 'small_image')->resize(400, 400);
-
             try {
+                $smallImage = $imageHelper->init($product, 'small_image')->resize(400, 400);
                 $customData['small_image_url'] = (string) $smallImage;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->log($e->getMessage());
                 $this->logger->log($e->getTraceAsString());
 
@@ -959,12 +957,11 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
 
         if (false === isset($defaultData['image_url'])) {
             /** @var Meilisearch_Search_Helper_Image $image */
-            $image = $imageHelper->init($product, $this->config->getImageType())
-                         ->resize($this->config->getImageWidth(), $this->config->getImageHeight());
-
             try {
+                $image = $imageHelper->init($product, $this->config->getImageType())
+                             ->resize($this->config->getImageWidth(), $this->config->getImageHeight());
                 $customData['image_url'] = (string) $image;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->log($e->getMessage());
                 $this->logger->log($e->getTraceAsString());
 
@@ -1100,16 +1097,15 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
                                 $values[] = $textValue;
 
                                 if (mb_strtolower((string) $attribute_name, 'utf-8') === 'color') {
-                                    $image = $imageHelper->init($sub_product, $this->config->getImageType())
-                                                         ->resize(
-                                                             $this->config->getImageWidth(),
-                                                             $this->config->getImageHeight(),
-                                                         );
-
                                     try {
+                                        $image = $imageHelper->init($sub_product, $this->config->getImageType())
+                                                             ->resize(
+                                                                 $this->config->getImageWidth(),
+                                                                 $this->config->getImageHeight(),
+                                                             );
                                         $textValueInLower = mb_strtolower((string) $textValue, 'utf-8');
                                         $subProductImages[$textValueInLower] = (string) $image;
-                                    } catch (\Exception $e) {
+                                    } catch (\Throwable $e) {
                                         $this->logger->log($e->getMessage());
                                         $this->logger->log($e->getTraceAsString());
                                     }
