@@ -1434,7 +1434,6 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
      * @param int     $storeId
      *
      * @return bool
-     *
      */
     public function canProductBeReindexed(Mage_Catalog_Model_Product $product, $storeId)
     {
