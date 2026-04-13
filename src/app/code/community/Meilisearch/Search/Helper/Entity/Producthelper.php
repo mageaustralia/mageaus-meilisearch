@@ -292,6 +292,14 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
         if (!in_array('sort_price', $attributesForFaceting, true)) {
             $attributesForFaceting[] = 'sort_price';
         }
+        // Add stock_status and status as filterable so API/POS queries can
+        // apply defensive filters (e.g. 'status = enabled', 'stock_status != out_of_stock')
+        if (!in_array('stock_status', $attributesForFaceting, true)) {
+            $attributesForFaceting[] = 'stock_status';
+        }
+        if (!in_array('status', $attributesForFaceting, true)) {
+            $attributesForFaceting[] = 'status';
+        }
 
         // Build displayed attributes list (all attributes except those marked as non-retrievable)
         $allAttributes = $this->getAllAttributeNames($storeId);
@@ -1036,6 +1044,10 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
         ) {
             $customData['stock_qty'] = (int) $product->getStockQty();
         }
+
+        // Always index stock_status and status so API/POS queries can filter on them
+        $customData['stock_status'] = $product->isInStock() ? 'in_stock' : 'out_of_stock';
+        $customData['status'] = ((int) $product->getStatus() === Mage_Catalog_Model_Product_Status::STATUS_ENABLED) ? 'enabled' : 'disabled';
 
         if (Mage::helper('core')->isModuleEnabled('Mage_Review')) {
             if ($this->isAttributeEnabled($additionalAttributes, 'rating_summary')) {
