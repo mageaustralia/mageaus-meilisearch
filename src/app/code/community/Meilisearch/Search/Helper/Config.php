@@ -381,6 +381,47 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
         return Mage::getStoreConfigFlag(self::IS_INSTANT_ENABLED, $storeId);
     }
 
+    /**
+     * Max facet values returned per facet by instant search.
+     * The configuration.phtml template calls this but the method was never
+     * defined, which fatals the block and prevents the inline
+     * window.meilisearchConfig script from being emitted — breaking frontend
+     * search entirely. Default 100 matches Algolia/Meilisearch library defaults.
+     */
+    public function getMaxValuesPerFacet($storeId = null)
+    {
+        $v = (int) Mage::getStoreConfig('meilisearch/instant/max_values_per_facet', $storeId);
+        return $v > 0 ? $v : 100;
+    }
+
+    /**
+     * Analytics toggles — the configuration.phtml template references these
+     * but the methods were never implemented on Config.php, which fatals the
+     * block and prevents window.meilisearchConfig from being emitted.
+     * Safe defaults: analytics off, no initial-search push, no UI-interaction
+     * trigger, 3s delay.
+     */
+    public function isEnabledAnalytics($storeId = null)
+    {
+        return Mage::getStoreConfigFlag('meilisearch/analytics/enabled', $storeId);
+    }
+
+    public function getAnalyticsDelay($storeId = null)
+    {
+        $v = (int) Mage::getStoreConfig('meilisearch/analytics/delay', $storeId);
+        return $v > 0 ? $v : 3000;
+    }
+
+    public function getPushInitialSearch($storeId = null)
+    {
+        return Mage::getStoreConfigFlag('meilisearch/analytics/push_initial_search', $storeId);
+    }
+
+    public function getTriggerOnUIInteraction($storeId = null)
+    {
+        return Mage::getStoreConfigFlag('meilisearch/analytics/trigger_on_ui_interaction', $storeId);
+    }
+
     public function useAdaptiveImage($storeId = null)
     {
         return Mage::getStoreConfigFlag(self::USE_ADAPTIVE_IMAGE, $storeId);
