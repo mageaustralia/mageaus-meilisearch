@@ -275,7 +275,10 @@ class Meilisearch_Search_Model_Observer
 
     private function loadMeilisearchSearchHandle(Varien_Event_Observer $observer)
     {
-        if (!$this->config->isPopupEnabled() && !$this->config->isInstantEnabled() && !$this->config->isAutoCompleteEnabled()) {
+        // isAutoCompleteEnabled() is an alias for isPopupEnabled() — they read
+        // the same DB flag — so checking both is redundant. Keep the OR with
+        // isInstantEnabled() since that is a separate flag.
+        if (!$this->config->isPopupEnabled() && !$this->config->isInstantEnabled()) {
             return;
         }
 

@@ -350,6 +350,16 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
         return Mage::getStoreConfig(self::RESULTS_LIMIT, $storeId);
     }
 
+    /**
+     * Whether the autocomplete / popup search dropdown is enabled.
+     *
+     * The underlying config key is `meilisearch/credentials/is_popup_enabled`
+     * for historical reasons — the feature was originally called "popup
+     * search" and the DB path was never renamed. It controls what users
+     * today know as the autocomplete dropdown that appears under the
+     * header search input. `isAutoCompleteEnabled()` is an alias kept for
+     * readability at call sites.
+     */
     public function isPopupEnabled($storeId = null)
     {
         return Mage::getStoreConfigFlag(self::IS_POPUP_ENABLED, $storeId);
@@ -360,9 +370,10 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
         return Mage::getStoreConfigFlag(self::REPLACE_CATEGORIES, $storeId);
     }
 
+    /** Alias for {@see isPopupEnabled()} — same underlying flag. */
     public function isAutoCompleteEnabled($storeId = null)
     {
-        return Mage::getStoreConfigFlag(self::IS_POPUP_ENABLED, $storeId);
+        return $this->isPopupEnabled($storeId);
     }
 
     public function isInstantEnabled($storeId = null)
