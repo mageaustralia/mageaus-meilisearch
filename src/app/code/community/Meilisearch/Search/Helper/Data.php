@@ -716,14 +716,27 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
             );
         }
 
-        if ($this->product_helper->isAttributeEnabled($additionalAttributes, 'ordered_qty')) {
-            $collection->getSelect()
-                       ->columns('(SELECT SUM(qty_ordered) FROM ' . $index_prefix . 'sales_flat_order_item WHERE ' . $index_prefix . 'sales_flat_order_item.product_id = e.entity_id) as ordered_qty');
-        }
-
-        if ($this->product_helper->isAttributeEnabled($additionalAttributes, 'total_ordered')) {
-            $collection->getSelect()
-                       ->columns('(SELECT SUM(row_total) FROM ' . $index_prefix . 'sales_flat_order_item WHERE ' . $index_prefix . 'sales_flat_order_item.product_id = e.entity_id) as total_ordered');
+        // ordered_qty + total_ordered used to be emitted as correlated
+        // subqueries, which meant N full aggregations over sales_flat_order_item
+        // per reindex page (100 products = 100 full-table scans on a big sales
+        // history). A single LEFT JOIN onto a derived GROUP BY aggregates once
+        // and reuses the result for every row in the page.
+        $needsOrdered = $this->product_helper->isAttributeEnabled($additionalAttributes, 'ordered_qty');
+        $needsTotal = $this->product_helper->isAttributeEnabled($additionalAttributes, 'total_ordered');
+        if ($needsOrdered || $needsTotal) {
+            $orderItemTable = $index_prefix . 'sales_flat_order_item';
+            $aggregateSql = sprintf(
+                '(SELECT product_id, SUM(qty_ordered) AS ordered_qty, SUM(row_total) AS total_ordered FROM %s GROUP BY product_id)',
+                $orderItemTable,
+            );
+            $collection->getSelect()->joinLeft(
+                ['msr_order_agg' => new Zend_Db_Expr($aggregateSql)],
+                'msr_order_agg.product_id = e.entity_id',
+                array_filter([
+                    'ordered_qty' => $needsOrdered ? 'msr_order_agg.ordered_qty' : null,
+                    'total_ordered' => $needsTotal ? 'msr_order_agg.total_ordered' : null,
+                ]),
+            );
         }
 
         if ($this->product_helper->isAttributeEnabled($additionalAttributes, 'rating_summary')) {
