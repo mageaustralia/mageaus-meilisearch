@@ -205,6 +205,10 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                 $this->meilisearch_helper->addObjects($chunk, $index_name . '_tmp');
             }
 
+            // Block until the tmp index is fully populated before swapping.
+            // Without this, moveIndex() can race ahead of the last addDocuments
+            // task and swap a half-populated tmp over the live index.
+            $this->meilisearch_helper->waitLastTask();
             $this->meilisearch_helper->moveIndex($index_name . '_tmp', $index_name);
 
             $this->meilisearch_helper->setSettings(
@@ -237,6 +241,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         if ($shouldUseTmpIndex === true) {
             $finalIndexName = $this->page_helper->getIndexName($storeId);
 
+            $this->meilisearch_helper->waitLastTask();
             $this->meilisearch_helper->moveIndex($indexName, $finalIndexName);
             $this->meilisearch_helper->setSettings($finalIndexName, $this->page_helper->getIndexSettings($storeId));
         }
@@ -281,6 +286,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
             if ($shouldUseTmpIndex === true) {
                 $finalIndexName = $amastyHelper->getIndexName($storeId);
+                $this->meilisearch_helper->waitLastTask();
                 $this->meilisearch_helper->moveIndex($indexName, $finalIndexName);
                 $this->meilisearch_helper->setSettings($finalIndexName, $amastyHelper->getIndexSettings($storeId));
             }
@@ -440,6 +446,9 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
             return;
         }
 
+        // Ensure all pending addDocuments tasks against the tmp index have
+        // completed before swap — see moveIndex() for why this matters.
+        $this->meilisearch_helper->waitLastTask();
         $this->meilisearch_helper->moveIndex(
             $this->suggestion_helper->getIndexName($storeId) . '_tmp',
             $this->suggestion_helper->getIndexName($storeId),
@@ -451,6 +460,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         $indexName = $this->product_helper->getIndexName($storeId);
         $tmpIndexName = $this->product_helper->getIndexName($storeId, true);
 
+        $this->meilisearch_helper->waitLastTask();
         $this->meilisearch_helper->moveIndex($tmpIndexName, $indexName);
     }
 

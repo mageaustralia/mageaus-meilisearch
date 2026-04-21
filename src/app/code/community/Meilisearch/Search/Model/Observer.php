@@ -345,8 +345,9 @@ class Meilisearch_Search_Model_Observer
 
             try {
                 $helper->rebuildStoreSuggestionIndex($store->getId());
-                // Wait for Meilisearch to finish indexing before swapping
-                sleep(3);
+                // moveStoreSuggestionIndex internally waits for pending tasks
+                // before swapping. (Previously this arbitrarily slept 3s and
+                // still raced on a slow Meilisearch.)
                 $helper->moveStoreSuggestionIndex($store->getId());
                 Mage::log(
                     'Meilisearch: suggestions rebuilt for store ' . $store->getCode(),
