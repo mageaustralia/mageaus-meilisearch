@@ -230,23 +230,27 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
         $emulationInfo = $this->startEmulation($storeId);
 
-        $indexName = $this->page_helper->getIndexName($storeId, $shouldUseTmpIndex);
+        try {
+            $indexName = $this->page_helper->getIndexName($storeId, $shouldUseTmpIndex);
 
-        /** @var array $pages */
-        $pages = $this->page_helper->getPages($storeId, $pageIds);
-        foreach (array_chunk($pages, 100) as $chunk) {
-            $this->meilisearch_helper->addObjects($chunk, $indexName);
+            /** @var array $pages */
+            $pages = $this->page_helper->getPages($storeId, $pageIds);
+            foreach (array_chunk($pages, 100) as $chunk) {
+                $this->meilisearch_helper->addObjects($chunk, $indexName);
+            }
+
+            if ($shouldUseTmpIndex === true) {
+                $finalIndexName = $this->page_helper->getIndexName($storeId);
+
+                $this->meilisearch_helper->waitLastTask();
+                $this->meilisearch_helper->moveIndex($indexName, $finalIndexName);
+                $this->meilisearch_helper->setSettings($finalIndexName, $this->page_helper->getIndexSettings($storeId));
+            }
+        } finally {
+            // Always unwind emulation so the rest of the PHP process isn't
+            // left with frontend translator/flat-catalog settings pinned.
+            $this->stopEmulation($emulationInfo);
         }
-
-        if ($shouldUseTmpIndex === true) {
-            $finalIndexName = $this->page_helper->getIndexName($storeId);
-
-            $this->meilisearch_helper->waitLastTask();
-            $this->meilisearch_helper->moveIndex($indexName, $finalIndexName);
-            $this->meilisearch_helper->setSettings($finalIndexName, $this->page_helper->getIndexSettings($storeId));
-        }
-
-        $this->stopEmulation($emulationInfo);
     }
 
     public function rebuildAmastyPagesIndex($storeId, $pageIds = null)
@@ -340,12 +344,9 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
                 unset($indexData);
             }
-        } catch (Exception $e) {
+        } finally {
             $this->stopEmulation($emulationInfo);
-            throw $e;
         }
-
-        $this->stopEmulation($emulationInfo);
     }
 
     public function rebuildStoreBarcodesIndex($storeId, $productIds = null)
@@ -405,9 +406,9 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         } catch (Exception $e) {
             $this->logger->log('Error during barcode indexing: ' . $e->getMessage());
             throw $e;
+        } finally {
+            $this->stopEmulation($emulationInfo);
         }
-
-        $this->stopEmulation($emulationInfo);
     }
 
     public function rebuildStoreSuggestionIndex($storeId)
@@ -503,12 +504,9 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                     $page++;
                 }
             }
-        } catch (Exception $e) {
+        } finally {
             $this->stopEmulation($emulationInfo);
-            throw $e;
         }
-
-        $this->stopEmulation($emulationInfo);
     }
 
     public function rebuildStoreSuggestionIndexPage($storeId, $collectionDefault, $page, $pageSize)
@@ -568,42 +566,44 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
             $emulationInfoPage = $this->startEmulation($storeId);
         }
 
-        $collection = clone $collectionDefault;
-        $collection->setCurPage($page)->setPageSize($pageSize);
-        $collection->load();
+        try {
+            $collection = clone $collectionDefault;
+            $collection->setCurPage($page)->setPageSize($pageSize);
+            $collection->load();
 
-        $index_name = $this->category_helper->getIndexName($storeId);
+            $index_name = $this->category_helper->getIndexName($storeId);
 
-        $indexData = [];
+            $indexData = [];
 
-        /** @var $category Mage_Catalog_Model_Category */
-        foreach ($collection as $category) {
-            if (!$this->category_helper->isCategoryActive($category->getId(), $storeId)) {
-                continue;
+            /** @var $category Mage_Catalog_Model_Category */
+            foreach ($collection as $category) {
+                if (!$this->category_helper->isCategoryActive($category->getId(), $storeId)) {
+                    continue;
+                }
+
+                $category->setStoreId($storeId);
+
+                $categoryObject = $this->category_helper->getObject($category);
+
+                if ($this->config->shouldIndexEmptyCategories($storeId) === true || $categoryObject['product_count'] > 0) {
+                    $indexData[] = $categoryObject;
+                }
             }
 
-            $category->setStoreId($storeId);
-
-            $categoryObject = $this->category_helper->getObject($category);
-
-            if ($this->config->shouldIndexEmptyCategories($storeId) === true || $categoryObject['product_count'] > 0) {
-                $indexData[] = $categoryObject;
+            if (count($indexData) > 0) {
+                $this->meilisearch_helper->addObjects($indexData, $index_name);
             }
-        }
 
-        if (count($indexData) > 0) {
-            $this->meilisearch_helper->addObjects($indexData, $index_name);
-        }
+            unset($indexData);
 
-        unset($indexData);
+            $collection->walk('clearInstance');
+            $collection->clear();
 
-        $collection->walk('clearInstance');
-        $collection->clear();
-
-        unset($collection);
-
-        if ($emulationInfo === null) {
-            $this->stopEmulation($emulationInfoPage);
+            unset($collection);
+        } finally {
+            if ($emulationInfoPage !== null) {
+                $this->stopEmulation($emulationInfoPage);
+            }
         }
     }
 
@@ -693,6 +693,8 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         if ($emulationInfo === null) {
             $emulationInfoPage = $this->startEmulation($storeId);
         }
+
+        try {
 
         $index_prefix = Mage::getConfig()->getTablePrefix();
 
@@ -811,8 +813,10 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
         unset($collection);
 
-        if ($emulationInfo === null) {
-            $this->stopEmulation($emulationInfoPage);
+        } finally {
+            if ($emulationInfoPage !== null) {
+                $this->stopEmulation($emulationInfoPage);
+            }
         }
 
         $this->logger->stop('rebuildStoreProductIndexPage ' . $this->logger->getStoreName($storeId) . ' page ' . $page . ' pageSize ' . $pageSize);
