@@ -696,122 +696,122 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
         try {
 
-        $index_prefix = Mage::getConfig()->getTablePrefix();
+            $index_prefix = Mage::getConfig()->getTablePrefix();
 
-        $additionalAttributes = $this->config->getProductAdditionalAttributes($storeId);
+            $additionalAttributes = $this->config->getProductAdditionalAttributes($storeId);
 
-        /** @var Mage_Catalog_Model_Resource_Product_Collection $collection */
-        $collection = clone $collectionDefault;
+            /** @var Mage_Catalog_Model_Resource_Product_Collection $collection */
+            $collection = clone $collectionDefault;
 
-        $collection->setCurPage($page)->setPageSize($pageSize);
-        $collection->addCategoryIds();
-        $collection->addUrlRewrite();
+            $collection->setCurPage($page)->setPageSize($pageSize);
+            $collection->addCategoryIds();
+            $collection->addUrlRewrite();
 
-        if ($this->product_helper->isAttributeEnabled($additionalAttributes, 'stock_qty')) {
-            $collection->joinField(
-                'stock_qty',
-                $index_prefix . 'cataloginventory_stock_item',
-                'qty',
-                'product_id=entity_id',
-                '{{table}}.stock_id=1',
-                'left',
+            if ($this->product_helper->isAttributeEnabled($additionalAttributes, 'stock_qty')) {
+                $collection->joinField(
+                    'stock_qty',
+                    $index_prefix . 'cataloginventory_stock_item',
+                    'qty',
+                    'product_id=entity_id',
+                    '{{table}}.stock_id=1',
+                    'left',
+                );
+            }
+
+            // ordered_qty + total_ordered used to be emitted as correlated
+            // subqueries, which meant N full aggregations over sales_flat_order_item
+            // per reindex page (100 products = 100 full-table scans on a big sales
+            // history). A single LEFT JOIN onto a derived GROUP BY aggregates once
+            // and reuses the result for every row in the page.
+            $needsOrdered = $this->product_helper->isAttributeEnabled($additionalAttributes, 'ordered_qty');
+            $needsTotal = $this->product_helper->isAttributeEnabled($additionalAttributes, 'total_ordered');
+            if ($needsOrdered || $needsTotal) {
+                $orderItemTable = $index_prefix . 'sales_flat_order_item';
+                $aggregateSql = sprintf(
+                    '(SELECT product_id, SUM(qty_ordered) AS ordered_qty, SUM(row_total) AS total_ordered FROM %s GROUP BY product_id)',
+                    $orderItemTable,
+                );
+                $collection->getSelect()->joinLeft(
+                    ['msr_order_agg' => new Zend_Db_Expr($aggregateSql)],
+                    'msr_order_agg.product_id = e.entity_id',
+                    array_filter([
+                        'ordered_qty' => $needsOrdered ? 'msr_order_agg.ordered_qty' : null,
+                        'total_ordered' => $needsTotal ? 'msr_order_agg.total_ordered' : null,
+                    ]),
+                );
+            }
+
+            if ($this->product_helper->isAttributeEnabled($additionalAttributes, 'rating_summary')) {
+                $collection->joinField(
+                    'rating_summary',
+                    $index_prefix . 'review_entity_summary',
+                    'rating_summary',
+                    'entity_pk_value=entity_id',
+                    '{{table}}.store_id=' . $storeId,
+                    'left',
+                );
+            }
+
+            Mage::dispatchEvent(
+                'meilisearch_before_products_collection_load',
+                ['collection' => $collection, 'store' => $storeId],
             );
-        }
 
-        // ordered_qty + total_ordered used to be emitted as correlated
-        // subqueries, which meant N full aggregations over sales_flat_order_item
-        // per reindex page (100 products = 100 full-table scans on a big sales
-        // history). A single LEFT JOIN onto a derived GROUP BY aggregates once
-        // and reuses the result for every row in the page.
-        $needsOrdered = $this->product_helper->isAttributeEnabled($additionalAttributes, 'ordered_qty');
-        $needsTotal = $this->product_helper->isAttributeEnabled($additionalAttributes, 'total_ordered');
-        if ($needsOrdered || $needsTotal) {
-            $orderItemTable = $index_prefix . 'sales_flat_order_item';
-            $aggregateSql = sprintf(
-                '(SELECT product_id, SUM(qty_ordered) AS ordered_qty, SUM(row_total) AS total_ordered FROM %s GROUP BY product_id)',
-                $orderItemTable,
-            );
-            $collection->getSelect()->joinLeft(
-                ['msr_order_agg' => new Zend_Db_Expr($aggregateSql)],
-                'msr_order_agg.product_id = e.entity_id',
-                array_filter([
-                    'ordered_qty' => $needsOrdered ? 'msr_order_agg.ordered_qty' : null,
-                    'total_ordered' => $needsTotal ? 'msr_order_agg.total_ordered' : null,
-                ]),
-            );
-        }
+            $this->logger->start('LOADING ' . $this->logger->getStoreName($storeId) . ' collection page ' . $page . ', pageSize ' . $pageSize);
 
-        if ($this->product_helper->isAttributeEnabled($additionalAttributes, 'rating_summary')) {
-            $collection->joinField(
-                'rating_summary',
-                $index_prefix . 'review_entity_summary',
-                'rating_summary',
-                'entity_pk_value=entity_id',
-                '{{table}}.store_id=' . $storeId,
-                'left',
-            );
-        }
+            $collection->load();
 
-        Mage::dispatchEvent(
-            'meilisearch_before_products_collection_load',
-            ['collection' => $collection, 'store' => $storeId],
-        );
+            $this->logger->log('Loaded ' . count($collection) . ' products');
+            $this->logger->stop('LOADING ' . $this->logger->getStoreName($storeId) . ' collection page ' . $page . ', pageSize ' . $pageSize);
 
-        $this->logger->start('LOADING ' . $this->logger->getStoreName($storeId) . ' collection page ' . $page . ', pageSize ' . $pageSize);
+            $indexName = $this->product_helper->getIndexName($storeId, $useTmpIndex);
 
-        $collection->load();
+            $indexData = $this->getProductsRecords($storeId, $collection, $productIds);
 
-        $this->logger->log('Loaded ' . count($collection) . ' products');
-        $this->logger->stop('LOADING ' . $this->logger->getStoreName($storeId) . ' collection page ' . $page . ', pageSize ' . $pageSize);
+            if (!empty($indexData['toIndex'])) {
+                $this->logger->start('ADD/UPDATE TO MEILISEARCH');
 
-        $indexName = $this->product_helper->getIndexName($storeId, $useTmpIndex);
+                // Convert associative array to indexed array for Meilisearch
+                $this->meilisearch_helper->addObjects(array_values($indexData['toIndex']), $indexName);
 
-        $indexData = $this->getProductsRecords($storeId, $collection, $productIds);
+                $this->logger->log('Product IDs: ' . implode(', ', array_keys($indexData['toIndex'])));
+                $this->logger->stop('ADD/UPDATE TO MEILISEARCH');
+            }
 
-        if (!empty($indexData['toIndex'])) {
-            $this->logger->start('ADD/UPDATE TO MEILISEARCH');
+            if (!empty($indexData['toRemove'])) {
+                $toRealRemove = [];
 
-            // Convert associative array to indexed array for Meilisearch
-            $this->meilisearch_helper->addObjects(array_values($indexData['toIndex']), $indexName);
+                if (count($indexData['toRemove']) === 1) {
+                    $toRealRemove = $indexData['toRemove'];
+                } else {
+                    $indexData['toRemove'] = array_map(strval(...), $indexData['toRemove']);
 
-            $this->logger->log('Product IDs: ' . implode(', ', array_keys($indexData['toIndex'])));
-            $this->logger->stop('ADD/UPDATE TO MEILISEARCH');
-        }
-
-        if (!empty($indexData['toRemove'])) {
-            $toRealRemove = [];
-
-            if (count($indexData['toRemove']) === 1) {
-                $toRealRemove = $indexData['toRemove'];
-            } else {
-                $indexData['toRemove'] = array_map(strval(...), $indexData['toRemove']);
-
-                foreach (array_chunk($indexData['toRemove'], 1000) as $chunk) {
-                    $objects = $this->meilisearch_helper->getObjects($indexName, $chunk);
-                    foreach ($objects['results'] as $object) {
-                        if (isset($object['objectID'])) {
-                            $toRealRemove[] = $object['objectID'];
+                    foreach (array_chunk($indexData['toRemove'], 1000) as $chunk) {
+                        $objects = $this->meilisearch_helper->getObjects($indexName, $chunk);
+                        foreach ($objects['results'] as $object) {
+                            if (isset($object['objectID'])) {
+                                $toRealRemove[] = $object['objectID'];
+                            }
                         }
                     }
                 }
+
+                if (!empty($toRealRemove)) {
+                    $this->logger->start('REMOVE FROM MEILISEARCH');
+
+                    $this->meilisearch_helper->deleteObjects($toRealRemove, $indexName);
+                    $this->logger->log('Product IDs: ' . implode(', ', $toRealRemove));
+
+                    $this->logger->stop('REMOVE FROM MEILISEARCH');
+                }
             }
 
-            if (!empty($toRealRemove)) {
-                $this->logger->start('REMOVE FROM MEILISEARCH');
+            unset($indexData);
 
-                $this->meilisearch_helper->deleteObjects($toRealRemove, $indexName);
-                $this->logger->log('Product IDs: ' . implode(', ', $toRealRemove));
+            $collection->walk('clearInstance');
+            $collection->clear();
 
-                $this->logger->stop('REMOVE FROM MEILISEARCH');
-            }
-        }
-
-        unset($indexData);
-
-        $collection->walk('clearInstance');
-        $collection->clear();
-
-        unset($collection);
+            unset($collection);
 
         } finally {
             if ($emulationInfoPage !== null) {

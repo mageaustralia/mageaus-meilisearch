@@ -10,7 +10,7 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
     /** @var Meilisearch_Search_Helper_Logger */
     protected $logger;
 
-    /** @var  Meilisearch_Search_Model_Queue */
+    /** @var Meilisearch_Search_Model_Queue */
     protected $queue;
 
     /** @var Meilisearch_Search_Helper_Config */

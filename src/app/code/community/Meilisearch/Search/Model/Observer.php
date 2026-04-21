@@ -11,7 +11,7 @@ class Meilisearch_Search_Model_Observer
     /** @var Meilisearch_Search_Helper_Entity_Producthelper */
     protected $product_helper;
 
-    /** @var Meilisearch_Search_Helper_Entity_Categoryhelper **/
+    /** @var Meilisearch_Search_Helper_Entity_Categoryhelper * */
     protected $category_helper;
 
     /** @var Meilisearch_Search_Helper_Entity_Suggestionhelper */
