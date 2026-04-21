@@ -49,21 +49,67 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
     }
 
     /**
-     * Wait for a task to complete
+     * Wait for a task to complete. Accepts either a Task object (new SDK),
+     * an array response ({"taskUid": N, ...}), or a scalar UID.
      *
-     * @param mixed $taskOrUid Task object or task UID
-     * @return void
+     * Previously this no-op'd on scalar UIDs, which meant moveIndex()'s
+     * atomicity guarantee silently broke whenever the SDK returned a scalar —
+     * deleteIndex(tmp) could run before the swap completed and nuke the live
+     * index. Now we always resolve to a task and poll to completion.
+     *
+     * @param mixed $taskOrUid Task object, array, or task UID
+     * @return array|null Final task payload (for status checks), or null on
+     *                    unresolvable input
      */
     protected function waitForTask($taskOrUid)
     {
         if (is_object($taskOrUid) && method_exists($taskOrUid, 'wait')) {
-            // New SDK - Task object has wait() method
             $taskOrUid->wait();
-        } elseif (is_numeric($taskOrUid) || is_string($taskOrUid)) {
-            // Old SDK would use client->waitForTask(), but new SDK needs Task object
-            // We can't wait for just a UID in the new SDK without getting the task first
-            // So we'll skip waiting in this case
-            return;
+            return method_exists($taskOrUid, 'toArray') ? $taskOrUid->toArray() : null;
+        }
+
+        $uid = $this->extractTaskUid($taskOrUid);
+        if ($uid === null && (is_numeric($taskOrUid) || is_string($taskOrUid))) {
+            $uid = $taskOrUid;
+        }
+        if ($uid === null || $this->client === null) {
+            return null;
+        }
+
+        // Client-level waitForTask is available on all supported SDK versions.
+        try {
+            $task = $this->client->waitForTask($uid);
+            if (is_object($task) && method_exists($task, 'toArray')) {
+                return $task->toArray();
+            }
+            return is_array($task) ? $task : null;
+        } catch (\Exception $e) {
+            Mage::log('Meilisearch waitForTask failed for uid ' . $uid . ': ' . $e->getMessage(), null, 'meilisearch_error.log');
+            return null;
+        }
+    }
+
+    /**
+     * Verify the last task succeeded. Throws on a failed task so callers
+     * (indexer, queue runner) can abort before promoting a partially-built
+     * tmp index or returning a success status that isn't true.
+     *
+     * @throws Meilisearch_Search_Model_Exception_IndexPendingException
+     */
+    protected function assertTaskSucceeded($taskResult, $context = '')
+    {
+        if (!is_array($taskResult)) {
+            return; // Couldn't resolve, don't block.
+        }
+        $status = $taskResult['status'] ?? null;
+        if ($status === 'failed' || $status === 'canceled') {
+            $error = $taskResult['error']['message'] ?? 'unknown error';
+            throw new Exception(sprintf(
+                'Meilisearch task %s %s: %s',
+                $taskResult['uid'] ?? '?',
+                $status,
+                $context ? "($context) $error" : $error,
+            ));
         }
     }
 
@@ -243,28 +289,28 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
 
     public function moveIndex($tmpIndexName, $indexName)
     {
-        // Use Meilisearch's native swap-indexes API (v0.30+)
-        // Atomically swaps the two indices, then deletes the old tmp one
+        // Use Meilisearch's native swap-indexes API (v0.30+).
+        // Atomicity depends on waiting for the swap task to succeed BEFORE
+        // deleting the (now-aliased-tmp) old index. Any prior silent no-op
+        // in waitForTask() would race deleteIndex past the live swap.
         try {
-            // Ensure target index exists (swap requires both to exist)
             try {
                 $this->client->getIndex($indexName);
             } catch (\Exception) {
-                $res = $this->client->createIndex($indexName, ['primaryKey' => 'objectID']);
-                $this->waitForTask($res);
+                $createRes = $this->client->createIndex($indexName, ['primaryKey' => 'objectID']);
+                $this->assertTaskSucceeded($this->waitForTask($createRes), "createIndex($indexName)");
             }
 
-            $res = $this->client->swapIndexes([
+            $swapRes = $this->client->swapIndexes([
                 [$tmpIndexName, $indexName],
             ]);
-            $this->waitForTask($res);
+            $this->assertTaskSucceeded($this->waitForTask($swapRes), "swapIndexes($tmpIndexName,$indexName)");
 
-            // Delete the old index (now under the tmp name after swap)
-            $res = $this->client->deleteIndex($tmpIndexName);
-            return ['taskID' => $this->extractTaskUid($res)];
+            $deleteRes = $this->client->deleteIndex($tmpIndexName);
+            return ['taskID' => $this->extractTaskUid($deleteRes)];
         } catch (\Exception $e) {
             Mage::log('Meilisearch moveIndex error: ' . $e->getMessage(), 3, 'meilisearch.log');
-            // Fallback: if swap not supported, delete and recreate
+            // Fallback: try to clean up the tmp index so the next run has room.
             try {
                 $this->client->deleteIndex($tmpIndexName);
             } catch (\Exception) {
@@ -333,8 +379,12 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
             return;
         }
 
-        // Wait for the last task to complete
-        $this->waitForTask($this->lastTask);
+        // Wait AND verify the task didn't fail. Previously this silently
+        // swallowed rejections from Meilisearch (payload too large, vector
+        // dimension mismatch, etc.) and the caller would move on as if the
+        // documents were indexed.
+        $result = $this->waitForTask($this->lastTask);
+        $this->assertTaskSucceeded($result, "lastTask on index {$this->lastUsedIndexName}");
     }
 
     public function getIndexSettings($indexName)
