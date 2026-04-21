@@ -168,11 +168,26 @@ class Meilisearch_Search_Model_Queue
                     "\nStack trace:\n" . $e->getTraceAsString();
                 $this->logger->log($logMessage);
 
-                // Increment retries, set the job ID back to NULL
-                $updateQuery = "UPDATE {$this->db->quoteIdentifier($this->table, true)} 
-                  SET pid = NULL, locked_at = NULL, retries = retries + 1 , error_log = '" . addslashes($logMessage) . "'
-                  WHERE job_id IN (" . implode(', ', (array) $job['merged_ids']) . ')';
-                $this->db->query($updateQuery);
+                // Increment retries, set the job ID back to NULL.
+                // Parameterised to avoid injection risk from anything that
+                // might end up in $logMessage (stack traces include file
+                // paths and class __toString output) and to correctly quote
+                // single quotes etc. The merged_ids list is cast to ints to
+                // harden the IN clause — values come from the DB but bind
+                // the list rather than interpolating anyway.
+                $mergedIds = array_map('intval', (array) $job['merged_ids']);
+                if (!empty($mergedIds)) {
+                    $this->db->update(
+                        $this->table,
+                        [
+                            'pid' => null,
+                            'locked_at' => null,
+                            'retries' => new Zend_Db_Expr('retries + 1'),
+                            'error_log' => $logMessage,
+                        ],
+                        $this->db->quoteInto('job_id IN (?)', $mergedIds),
+                    );
+                }
             }
         }
 
@@ -466,7 +481,8 @@ class Meilisearch_Search_Model_Queue
                         ->fetchAll(\PDO::FETCH_COLUMN, 0);
 
         if ($idsToDelete) {
-            $this->db->query("DELETE FROM {$this->logTable} WHERE id IN (" . implode(', ', $idsToDelete) . ')');
+            $idsToDelete = array_map('intval', $idsToDelete);
+            $this->db->delete($this->logTable, $this->db->quoteInto('id IN (?)', $idsToDelete));
         }
     }
 
