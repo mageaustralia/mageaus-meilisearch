@@ -804,6 +804,17 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
         $info = $appEmulation->startEnvironmentEmulation($storeId);
 
+        // Catalog price rule, tier price, special price, etc. observers are
+        // registered under <frontend><events>. Indexing usually runs from CLI
+        // or cron (no area loaded), so those observers never fire inside
+        // getFinalPrice() and per-group prices regress to the full price.
+        // Loading the frontend event area here — once per batch, alongside
+        // the other frontend-emulation setup — is idempotent on repeat calls.
+        Mage::app()->loadAreaPart(
+            Mage_Core_Model_App_Area::AREA_FRONTEND,
+            Mage_Core_Model_App_Area::PART_EVENTS,
+        );
+
         $info->setInitialStoreId(Mage::app()->getStore()->getId());
         $info->setEmulatedStoreId($storeId);
         $info->setUseProductFlat(Mage::getStoreConfigFlag(

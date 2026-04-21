@@ -541,15 +541,6 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
 
     protected function handlePrice(Mage_Catalog_Model_Product &$product, $sub_products, &$customData)
     {
-        // Catalog rule observer is registered under <frontend><events>, so when the indexer
-        // runs from CLI/cron the rule never fires inside getFinalPrice() and per-group prices
-        // regress to the full price. Register the frontend event observers once here so the
-        // rule, special-price, and tier-price observers all apply during indexing.
-        Mage::app()->loadAreaPart(
-            Mage_Core_Model_App_Area::AREA_FRONTEND,
-            Mage_Core_Model_App_Area::PART_EVENTS,
-        );
-
         $fields = $this->getFields($product->getStore());
         $customer_groups_enabled = $this->config->isCustomerGroupsEnabled($product->getStoreId());
         $store = $product->getStore();
