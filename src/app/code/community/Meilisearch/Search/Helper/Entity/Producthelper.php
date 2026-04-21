@@ -1,6 +1,5 @@
 <?php
 
-use MeilisearchSearch\MeilisearchException;
 
 class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_Helper_Entity_Helper
 {

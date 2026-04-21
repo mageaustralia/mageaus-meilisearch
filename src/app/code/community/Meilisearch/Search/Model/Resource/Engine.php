@@ -129,9 +129,11 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
                     echo '[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()) . "\n";
                 }
 
-                /** @var Mage_Adminhtml_Model_Session $session */
-                $session = Mage::getSingleton('adminhtml/session');
-                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
+                if (php_sapi_name() !== 'cli') {
+                    /** @var Mage_Adminhtml_Model_Session $session */
+                    $session = Mage::getSingleton('adminhtml/session');
+                    $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
+                }
 
                 $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
 
@@ -156,9 +158,11 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
                     echo '[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()) . "\n";
                 }
 
-                /** @var Mage_Adminhtml_Model_Session $session */
-                $session = Mage::getSingleton('adminhtml/session');
-                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
+                if (php_sapi_name() !== 'cli') {
+                    /** @var Mage_Adminhtml_Model_Session $session */
+                    $session = Mage::getSingleton('adminhtml/session');
+                    $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
+                }
 
                 $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
 
@@ -204,9 +208,11 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
                     echo '[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId) . "\n";
                 }
 
-                /** @var Mage_Adminhtml_Model_Session $session */
-                $session = Mage::getSingleton('adminhtml/session');
-                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
+                if (php_sapi_name() !== 'cli') {
+                    /** @var Mage_Adminhtml_Model_Session $session */
+                    $session = Mage::getSingleton('adminhtml/session');
+                    $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
+                }
 
                 $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
 
@@ -240,9 +246,11 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
                     echo '[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()) . "\n";
                 }
 
-                /** @var Mage_Adminhtml_Model_Session $session */
-                $session = Mage::getSingleton('adminhtml/session');
-                $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
+                if (php_sapi_name() !== 'cli') {
+                    /** @var Mage_Adminhtml_Model_Session $session */
+                    $session = Mage::getSingleton('adminhtml/session');
+                    $session->addWarning('[MEILISEARCH] INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
+                }
 
                 $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($store->getId()));
 

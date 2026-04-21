@@ -34,12 +34,8 @@ class Meilisearch_Search_Model_Observer
      */
     public function configSaved(Varien_Event_Observer $observer)
     {
-        try {
-            $this->saveSettings();
-        } catch (\Exception $e) {
-            // Let the exception propagate so the admin can see the error
-            throw $e;
-        }
+        // Exceptions propagate naturally so the admin sees the error.
+        $this->saveSettings();
     }
 
     public function saveSettings($isFullProductReindex = false)
