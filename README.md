@@ -1,5 +1,8 @@
 # Meilisearch Search — Maho Extension
 
+[![CI](https://github.com/mageaus/meilisearch/actions/workflows/ci.yml/badge.svg)](https://github.com/mageaus/meilisearch/actions/workflows/ci.yml)
+[![License: OSL-3.0](https://img.shields.io/badge/license-OSL--3.0-blue.svg)](LICENSE)
+
 Integrates [Meilisearch](https://www.meilisearch.com/) with Maho Commerce (OpenMage/Magento 1) to provide fast, typo-tolerant search with autocomplete, instant search results, and search analytics.
 
 ## Screenshots
