@@ -444,7 +444,7 @@
                             <comment>
                                 <![CDATA[
                                 Configure the sorting options available to users (e.g. price ascending, newest first).<br>
-                                Meilisearch uses <code>sortableAttributes</code> on a single index — no replica indices are needed.<br>
+                                Meilisearch uses <code>sortableAttributes</code> on a single index - no replica indices are needed.<br>
                                 Documentation: <a target="_blank" href="https://docs.meilisearch.com/learn/getting_started/filtering_and_sorting.html#sorting">Meilisearch Sorting</a>
                                 ]]>
                             </comment>
@@ -1047,7 +1047,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment>If you don't have the top.search block you can specify the selector of your search input here to use it. Default value is .meilisearch-search-input</comment>
+                            <comment>CSS selector(s) for the search input(s) to attach autocomplete to. Comma-separated lists are supported. Default `#search, .meilisearch-search-input` matches Maho's stock catalogsearch form AND themes that opt into the Meili-namespaced class.</comment>
                         </autocomplete_selector>
                         <index_product_on_category_products_update translate="label comment">
                             <label>Update product on category products update</label>

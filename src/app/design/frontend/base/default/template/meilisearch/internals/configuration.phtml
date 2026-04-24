@@ -182,6 +182,13 @@ $meilisearchJsConfig = array(
     ),
     'extensionVersion' => $config->getExtensionVersion(),
     'serverUrl' => $config->getServerUrl($storeId), // Meilisearch API server URL
+    // Search-only API key for the browser. Falls back to the master key
+    // when no read-only key is configured (master is fine for dev; in
+    // production a search-only tenant token should be set so the
+    // browser doesn't get write access to indexes). Without this, the
+    // bundled JS instantiates the MeiliSearch client without auth and
+    // every request 401s if the daemon has any master_key set.
+    'apiKey' => $config->getSearchOnlyAPIKey($storeId) ?: $config->getAPIKey($storeId),
     'searchResultsUrl' => $baseUrl . $config->getSearchResultsUrl($storeId), // Maho search results page
     'indexName' => $productHelper->getBaseIndexName(),
     'indexPrefix' => $config->getIndexPrefix(),

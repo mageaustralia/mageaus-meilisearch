@@ -304,7 +304,11 @@
                 <make_seo_request>1</make_seo_request>
                 <remove_branding>0</remove_branding>
                 <show_queue_notification>1</show_queue_notification>
-                <autocomplete_selector>.meilisearch-search-input</autocomplete_selector>
+                <!-- Match Maho's default catalogsearch form (#search) and
+                     themes that opt into the Meili-namespaced class. The
+                     bundled JS does querySelectorAll(selector) so any valid
+                     CSS selector list works here. -->
+                <autocomplete_selector>#search, .meilisearch-search-input</autocomplete_selector>
                 <index_product_on_category_products_update>1</index_product_on_category_products_update>
                 <index_all_category_product_on_category_update>0</index_all_category_product_on_category_update>
                 <prevent_backend_rendering>0</prevent_backend_rendering>

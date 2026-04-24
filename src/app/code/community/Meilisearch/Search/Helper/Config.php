@@ -115,7 +115,15 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
 
     public function isDefaultSelector($storeId = null)
     {
-        return '.meilisearch-search-input' === $this->getAutocompleteSelector($storeId);
+        // Compare against the config.xml-declared default so this stays
+        // correct if the default value is ever changed there. Falls back
+        // to the historical default if the node is missing for any reason.
+        $configured = $this->getAutocompleteSelector($storeId);
+        $default = (string) (Mage::getConfig()->getNode(
+            'default/' . self::AUTOCOMPLETE_SELECTOR,
+        ) ?: '.meilisearch-search-input');
+
+        return $configured === $default;
     }
 
     public function getAutocompleteSelector($storeId = null)
@@ -354,7 +362,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
      * Whether the autocomplete / popup search dropdown is enabled.
      *
      * The underlying config key is `meilisearch/credentials/is_popup_enabled`
-     * for historical reasons — the feature was originally called "popup
+     * for historical reasons - the feature was originally called "popup
      * search" and the DB path was never renamed. It controls what users
      * today know as the autocomplete dropdown that appears under the
      * header search input. `isAutoCompleteEnabled()` is an alias kept for
@@ -370,7 +378,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
         return Mage::getStoreConfigFlag(self::REPLACE_CATEGORIES, $storeId);
     }
 
-    /** Alias for {@see isPopupEnabled()} — same underlying flag. */
+    /** Alias for {@see isPopupEnabled()} - same underlying flag. */
     public function isAutoCompleteEnabled($storeId = null)
     {
         return $this->isPopupEnabled($storeId);
@@ -385,7 +393,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
      * Max facet values returned per facet by instant search.
      * The configuration.phtml template calls this but the method was never
      * defined, which fatals the block and prevents the inline
-     * window.meilisearchConfig script from being emitted — breaking frontend
+     * window.meilisearchConfig script from being emitted - breaking frontend
      * search entirely. Default 100 matches Algolia/Meilisearch library defaults.
      */
     public function getMaxValuesPerFacet($storeId = null)
@@ -395,7 +403,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * Analytics toggles — the configuration.phtml template references these
+     * Analytics toggles - the configuration.phtml template references these
      * but the methods were never implemented on Config.php, which fatals the
      * block and prevents window.meilisearchConfig from being emitted.
      * Safe defaults: analytics off, no initial-search push, no UI-interaction
