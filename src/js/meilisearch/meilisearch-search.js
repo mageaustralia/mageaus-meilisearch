@@ -186,11 +186,21 @@
 
         function renderAutocomplete(results, query) {
             var products = results.find(function(r) { return r.type === 'products'; });
-            var sidebar = results.filter(function(r) { return r.type !== 'products'; })
+            var sidebar = results
+                .filter(function(r) { return r.type !== 'products'; })
+                // Hide blog section entirely when it returned no hits -
+                // blog posts are an opt-in extra and rendering "No blog
+                // posts found for X" feels noisy when the user typed
+                // something like a SKU. Other sections still show their
+                // empty state for symmetry with the pre-blog UX.
+                .filter(function(r) { return r.type !== 'blog' || r.hits.length > 0; })
                 .sort(function(a, b) {
-                    // Render order in the dropdown sidebar - blog sits
-                    // after pages, suggestions still last.
-                    var order = { categories: 1, pages: 2, blog: 3, suggestions: 4 };
+                    // Render order in the dropdown sidebar. Blog sits
+                    // ABOVE pages because blog is editorial content the
+                    // shop chose to surface; CMS pages are utility links
+                    // (About, Customer Service) that read better lower.
+                    // Suggestions still last.
+                    var order = { categories: 1, blog: 2, pages: 3, suggestions: 4 };
                     return (order[a.type] || 9) - (order[b.type] || 9);
                 });
 

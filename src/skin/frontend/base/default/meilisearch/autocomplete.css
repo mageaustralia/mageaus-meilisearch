@@ -1,5 +1,5 @@
 /**
- * Meilisearch Autocomplete — Clean Design
+ * Meilisearch Autocomplete - Clean Design
  */
 
 .meilisearch-autocomplete {
@@ -163,8 +163,9 @@
     margin-top: auto;
 }
 
-/* Page hits in sidebar */
-.meilisearch-autocomplete-left-column .meilisearch-autocomplete-section-pages .meilisearch-autocomplete-hit a {
+/* Page + Blog hits in sidebar - title above snippet, both full width */
+.meilisearch-autocomplete-left-column .meilisearch-autocomplete-section-pages .meilisearch-autocomplete-hit a,
+.meilisearch-autocomplete-left-column .meilisearch-autocomplete-section-blog .meilisearch-autocomplete-hit a {
     flex-direction: column;
     align-items: flex-start;
     gap: 2px;
@@ -291,7 +292,7 @@
     }
 }
 
-/* Search modal input — match dropdown style */
+/* Search modal input - match dropdown style */
 #search_modal .modal-box {
     border-radius: 0;
     padding: 12px 16px;
