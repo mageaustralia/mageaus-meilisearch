@@ -198,6 +198,9 @@
                 <meilisearch_search_indexer_pages>
                     <model>meilisearch_search/indexer_meilisearchpages</model>
                 </meilisearch_search_indexer_pages>
+                <meilisearch_search_indexer_blog>
+                    <model>meilisearch_search/indexer_meilisearchblog</model>
+                </meilisearch_search_indexer_blog>
                 <meilisearch_amasty_pages>
                     <model>meilisearch_search/indexer_meilisearchamastypages</model>
                 </meilisearch_amasty_pages>
@@ -249,7 +252,13 @@
                 <index_whole_category_tree>1</index_whole_category_tree>
             </products>
             <instant>
-                <replace_categories>1</replace_categories>
+                <!-- Off by default. When 1, the Meili instant-search SPA
+                     also renders on /catalog/category/* pages, replacing
+                     Maho's stock category template. Most stores want their
+                     hand-built category PLPs to keep working - admins opt
+                     in if they want the unified Meili facet/filter UX
+                     across both search and category. -->
+                <replace_categories>0</replace_categories>
                 <instant_selector>.main</instant_selector>
                 <facets>a:3:{s:18:"_1432907948596_596";a:5:{s:9:"attribute";s:5:"price";s:4:"type";s:6:"slider";s:5:"label";s:5:"Price";s:10:"searchable";s:1:"2";s:11:"create_rule";s:1:"2";}s:18:"_1432907963376_376";a:5:{s:9:"attribute";s:10:"categories";s:4:"type";s:11:"conjunctive";s:5:"label";s:10:"Categories";s:10:"searchable";s:1:"2";s:11:"create_rule";s:1:"2";}s:17:"_1447846054032_32";a:5:{s:9:"attribute";s:5:"color";s:4:"type";s:11:"disjunctive";s:5:"label";s:6:"Colors";s:10:"searchable";s:1:"1";s:11:"create_rule";s:1:"2";}}</facets>
                 <max_values_per_facet>10</max_values_per_facet>
@@ -261,6 +270,9 @@
                 <nb_of_products_suggestions>6</nb_of_products_suggestions>
                 <nb_of_categories_suggestions>2</nb_of_categories_suggestions>
                 <nb_of_queries_suggestions>5</nb_of_queries_suggestions>
+                <!-- 0 = blog section disabled. Section also auto-disables
+                     when the Maho_Blog module isn't installed/active. -->
+                <nb_of_blog_suggestions>0</nb_of_blog_suggestions>
                 <sections>a:1:{s:18:"_1450089283397_397";a:3:{s:4:"name";s:5:"pages";s:5:"label";s:5:"Pages";s:11:"hitsPerPage";s:1:"2";}}</sections>
                 <min_popularity>100</min_popularity>
                 <min_number_of_results>2</min_number_of_results>

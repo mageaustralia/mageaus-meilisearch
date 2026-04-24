@@ -120,6 +120,27 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
         }
     }
 
+    /**
+     * Enqueue blog index rebuilds. Skipped per-store when shouldIndexBlog
+     * is false (Maho_Blog disabled OR admin opted out via 0 suggestions).
+     */
+    public function rebuildBlog($storeId = null, $postIds = null)
+    {
+        $storeIds = Meilisearch_Search_Helper_Entity_Helper::getStores($storeId);
+        $blogHelper = Mage::helper('meilisearch_search/entity_bloghelper');
+
+        foreach ($storeIds as $sid) {
+            if ($blogHelper->shouldIndexBlog($sid) === true) {
+                $this->addToQueue(
+                    'meilisearch_search/observer',
+                    'rebuildBlogIndex',
+                    ['store_id' => $sid, 'post_ids' => $postIds],
+                    1,
+                );
+            }
+        }
+    }
+
     public function rebuildAdditionalSections()
     {
         /** @var Mage_Core_Model_Store $store */

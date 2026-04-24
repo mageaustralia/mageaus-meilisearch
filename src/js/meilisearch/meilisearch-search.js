@@ -163,6 +163,18 @@
                 );
             }
 
+            // Blog posts (opt-in via config; 0 disables, also off when
+            // Maho_Blog isn't installed - the template force-zeroes it).
+            var nBlog = parseInt(config.autocomplete.nbOfBlogSuggestions) || 0;
+            if (nBlog > 0) {
+                promises.push(
+                    client.index(idx + '_blog').search(query, {
+                        limit: nBlog,
+                        attributesToHighlight: ['title', 'content']
+                    }).then(function(r) { return { type: 'blog', hits: r.hits }; })
+                );
+            }
+
             // Failsafe per-promise
             Promise.all(promises.map(function(p) {
                 return p.catch(function(e) { console.warn('Meilisearch index error:', e.message); return null; });
@@ -176,7 +188,9 @@
             var products = results.find(function(r) { return r.type === 'products'; });
             var sidebar = results.filter(function(r) { return r.type !== 'products'; })
                 .sort(function(a, b) {
-                    var order = { categories: 1, pages: 2, suggestions: 3 };
+                    // Render order in the dropdown sidebar - blog sits
+                    // after pages, suggestions still last.
+                    var order = { categories: 1, pages: 2, blog: 3, suggestions: 4 };
                     return (order[a.type] || 9) - (order[b.type] || 9);
                 });
 
@@ -202,6 +216,15 @@
                             html += '<a href="' + url + '">';
                             html += '<span>' + highlight(hit, 'name') + '</span>';
                             if (hit.product_count) html += '<span class="badge">' + hit.product_count + '</span>';
+                            html += '</a>';
+                        } else if (section.type === 'blog') {
+                            // Blog posts use `title` (not `name`) since the
+                            // Maho_Blog model exposes the field that way.
+                            html += '<a href="' + url + '">';
+                            html += '<span class="page-title">' + highlight(hit, 'title') + '</span>';
+                            if (hit._formatted && hit._formatted.content) {
+                                html += '<span class="page-snippet">' + hit._formatted.content + '</span>';
+                            }
                             html += '</a>';
                         } else {
                             html += '<a href="' + url + '">';
