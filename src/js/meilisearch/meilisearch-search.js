@@ -231,16 +231,16 @@
                             // Blog posts use `title` (not `name`) since the
                             // Maho_Blog model exposes the field that way.
                             html += '<a href="' + url + '">';
-                            html += '<span class="page-title">' + highlight(hit, 'title') + '</span>';
+                            html += '<span class="meilisearch-autocomplete-page-title">' + highlight(hit, 'title') + '</span>';
                             if (hit._formatted && hit._formatted.content) {
-                                html += '<span class="page-snippet">' + hit._formatted.content + '</span>';
+                                html += '<span class="meilisearch-autocomplete-page-snippet">' + hit._formatted.content + '</span>';
                             }
                             html += '</a>';
                         } else {
                             html += '<a href="' + url + '">';
-                            html += '<span class="page-title">' + highlight(hit, 'name') + '</span>';
+                            html += '<span class="meilisearch-autocomplete-page-title">' + highlight(hit, 'name') + '</span>';
                             if (hit._formatted && hit._formatted.content) {
-                                html += '<span class="page-snippet">' + hit._formatted.content + '</span>';
+                                html += '<span class="meilisearch-autocomplete-page-snippet">' + hit._formatted.content + '</span>';
                             }
                             html += '</a>';
                         }
