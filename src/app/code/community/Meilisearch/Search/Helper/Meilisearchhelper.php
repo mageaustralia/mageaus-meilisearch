@@ -53,7 +53,7 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
      * an array response ({"taskUid": N, ...}), or a scalar UID.
      *
      * Previously this no-op'd on scalar UIDs, which meant moveIndex()'s
-     * atomicity guarantee silently broke whenever the SDK returned a scalar —
+     * atomicity guarantee silently broke whenever the SDK returned a scalar -
      * deleteIndex(tmp) could run before the swap completed and nuke the live
      * index. Now we always resolve to a task and poll to completion.
      *
@@ -522,6 +522,33 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
             $meilisearchSettings['filterableAttributes'] = array_map(fn($attr) => str_replace('searchable(', '', str_replace(')', '', $attr)), $settings['attributesForFaceting']);
         }
 
+        // Pass-through for callers that already use Meilisearch-native keys
+        // rather than Algolia-style. Producthelper::setSettings builds the
+        // index config with `filterableAttributes`, `sortableAttributes`,
+        // `displayedAttributes` directly, so without these branches the
+        // facets would silently drop and the storefront search page would
+        // 400 with "Invalid facet distribution, this index does not have
+        // configured filterable attributes."
+        //
+        // `searchable(...)` and `unordered(...)` Algolia wrappers are
+        // stripped here too - the storefront JS asks for facets by their
+        // bare attribute code (`color`), not the wrapped Algolia form
+        // (`searchable(color)`), so the unwrap must happen on the index
+        // config side.
+        $unwrap = static fn(string $attr): string => preg_replace(
+            '/^(?:searchable|unordered)\((.*)\)$/',
+            '$1',
+            $attr,
+        );
+        foreach (['filterableAttributes', 'sortableAttributes', 'displayedAttributes'] as $key) {
+            if (isset($settings[$key]) && !isset($meilisearchSettings[$key])) {
+                $value = $settings[$key];
+                $meilisearchSettings[$key] = is_array($value)
+                    ? array_values(array_unique(array_map($unwrap, $value)))
+                    : $unwrap((string) $value);
+            }
+        }
+
         if (isset($settings['customRanking'])) {
             // Extract attributes for sortableAttributes
             $meilisearchSettings['sortableAttributes'] = array_map(fn($attr) => str_replace(['asc(', 'desc(', ')'], '', $attr), $settings['customRanking']);
@@ -682,7 +709,10 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
     protected function convertSynonyms($synonyms)
     {
         if (empty($synonyms)) {
-            return new \stdClass(); // Return empty object for Meilisearch
+            // meilisearch-php >=1.16 type-hints updateSynonyms($synonyms): array,
+            // so an empty stdClass throws TypeError. Empty array serialises to
+            // [] (vs {}) but Meilisearch accepts both as "no synonyms".
+            return [];
         }
 
         $meilisearchSynonyms = [];

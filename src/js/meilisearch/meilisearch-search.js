@@ -1,5 +1,5 @@
 /**
- * Meilisearch Search — Vanilla JS
+ * Meilisearch Search - Vanilla JS
  * Replaces: meilisearchBundle.js, common.js, mustache.min.js,
  *           autocomplete-templates.js, instantsearch.js
  *
@@ -69,7 +69,14 @@
 
     function createClient() {
         if (typeof MeiliSearch !== 'undefined') {
-            return new MeiliSearch({ host: config.serverUrl });
+            // apiKey comes from configuration.phtml -- search-only key with
+            // master-key fallback. Required when the meili daemon was
+            // started with a master_key, otherwise every request 401s.
+            var opts = { host: config.serverUrl };
+            if (config.apiKey) {
+                opts.apiKey = config.apiKey;
+            }
+            return new MeiliSearch(opts);
         }
         console.error('MeiliSearch client not loaded');
         return null;
@@ -211,7 +218,7 @@
                 html += '</div>';
             }
 
-            // Right column — products
+            // Right column - products
             html += '<div class="meilisearch-autocomplete-right-column">';
             html += '<div class="meilisearch-autocomplete-section meilisearch-autocomplete-section-products">';
             html += '<div class="meilisearch-autocomplete-section-title">' + esc(config.translations.products || 'Products') + '</div>';
@@ -294,6 +301,14 @@
         var container = document.querySelector(config.instant.selector);
         if (!container) return;
 
+        // configuration.phtml writes a `<style>{instant.selector}{display:none}</style>`
+        // tag at the top of <head> so the original Maho-rendered search
+        // results don't flash on screen before this script replaces them.
+        // We're now ready to render - force the container visible with an
+        // inline style (higher specificity than the head <style>) so the
+        // initial-hide trick doesn't permanently keep the page blank.
+        container.style.display = 'block';
+
         var state = {
             query: '',
             page: 0,
@@ -374,10 +389,21 @@
         function doSearch() {
             resultsEl.innerHTML = '<div class="meilisearch-loading">Loading...</div>';
 
+            // The 'price' facet is stored on the index as
+            // `price.<currency>.<group>` (per-currency, per-customer-group)
+            // because Meili needs concrete attribute names. The frontend
+            // facet config still says "price", so we expand here using the
+            // priceKey (".<currency>.default" for the guest group, or
+            // ".<currency>.group_<id>" for logged-in shoppers) the
+            // configuration template emits.
             var searchParams = {
                 limit: config.hitsPerPage || 10,
                 offset: state.page * (config.hitsPerPage || 10),
-                facets: (config.facets || []).map(function(f) { return f.attribute; }),
+                facets: (config.facets || []).map(function(f) {
+                    return f.attribute === 'price'
+                        ? 'price' + (config.priceKey || '')
+                        : f.attribute;
+                }),
                 attributesToHighlight: ['name']
             };
 

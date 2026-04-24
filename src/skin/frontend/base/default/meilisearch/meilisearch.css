@@ -119,6 +119,13 @@
 .facet-value {
     padding: 5px 0;
     cursor: pointer;
+    /* Lay out checkbox + label inline so the value text sits next to the
+       checkbox, not on its own line below. flex-start keeps them aligned
+       at the top so multi-word labels wrap nicely under the text rather
+       than reflowing under the checkbox. */
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
 }
 
 .facet-value:hover {
@@ -126,14 +133,20 @@
 }
 
 .facet-value input[type="checkbox"] {
-    margin-right: 5px;
+    /* margin-right superseded by .facet-value's gap; keep top-margin so
+       the checkbox aligns with the first line of label text. */
+    margin: 3px 0 0 0;
+    flex: 0 0 auto;
 }
 
 .facet-value label {
     cursor: pointer;
+    /* label takes the remaining width and lays its name+count inline. */
+    flex: 1 1 auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 6px;
 }
 
 .facet-value-count {
