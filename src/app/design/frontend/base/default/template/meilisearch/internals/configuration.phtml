@@ -177,6 +177,12 @@ $meilisearchJsConfig = array(
         'nbOfCategoriesSuggestions' => $config->getNumberOfCategoriesSuggestions(),
         'nbOfQueriesSuggestions' => $config->getNumberOfQueriesSuggestions(),
         'nbOfPagesSuggestions' => $config->getNumberOfPagesSuggestions(),
+        // Blog autocomplete is opt-in: 0 means the JS won't query the blog
+        // index. Force-zeroed when Maho_Blog isn't installed so the
+        // configured count never overrides a missing dependency.
+        'nbOfBlogSuggestions' => Mage::helper('meilisearch_search/entity_bloghelper')->isBlogModuleEnabled()
+            ? (int) $config->getNumberOfBlogSuggestions($storeId)
+            : 0,
         'displaySuggestionsCategories' => $config->displaySuggestionsCategories(),
         'isDebugEnabled' => $config->isAutocompleteDebugEnabled(),
     ),
@@ -249,6 +255,8 @@ $meilisearchJsConfig = array(
         'relevance' => $this->__('Relevance'),
         'categories' => $this->__('Categories'),
         'products' => $this->__('Products'),
+        'pages' => $this->__('Pages'),
+        'blog' => $this->__('Blog Posts'),
         'searchBy' => $this->__('Search by'),
         'showMore' => $this->__('Show more products'),
         'searchForFacetValuesPlaceholder' => $this->__('Search for other ...'),

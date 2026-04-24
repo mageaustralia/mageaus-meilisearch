@@ -28,6 +28,7 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
     public const NB_OF_CATEGORIES_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_categories_suggestions';
     public const NB_OF_QUERIES_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_queries_suggestions';
     public const NB_OF_PAGES_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_pages_suggestions';
+    public const NB_OF_BLOG_SUGGESTIONS = 'meilisearch/autocomplete/nb_of_blog_suggestions';
     public const AUTOCOMPLETE_SECTIONS = 'meilisearch/autocomplete/sections';
     public const EXCLUDED_PAGES = 'meilisearch/autocomplete/excluded_pages';
     public const MIN_POPULARITY = 'meilisearch/autocomplete/min_popularity';
@@ -159,6 +160,16 @@ class Meilisearch_Search_Helper_Config extends Mage_Core_Helper_Abstract
     public function getNumberOfPagesSuggestions($storeId = null)
     {
         return Mage::getStoreConfig(self::NB_OF_PAGES_SUGGESTIONS, $storeId) ?: 2;
+    }
+
+    /**
+     * Number of blog post suggestions in the autocomplete dropdown.
+     * 0 (the default) disables the section. Section also auto-disables
+     * when the Maho_Blog module is unavailable.
+     */
+    public function getNumberOfBlogSuggestions($storeId = null)
+    {
+        return (int) Mage::getStoreConfig(self::NB_OF_BLOG_SUGGESTIONS, $storeId);
     }
 
     public function showSuggestionsOnNoResultsPage($storeId = null)

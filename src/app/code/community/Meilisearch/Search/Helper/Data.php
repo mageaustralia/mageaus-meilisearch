@@ -10,6 +10,9 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
     /** @var Meilisearch_Search_Helper_Entity_Pagehelper */
     protected $page_helper;
 
+    /** @var Meilisearch_Search_Helper_Entity_Bloghelper */
+    protected $blog_helper;
+
     /** @var Meilisearch_Search_Helper_Entity_Categoryhelper */
     protected $category_helper;
 
@@ -33,6 +36,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         $this->meilisearch_helper = Mage::helper('meilisearch_search/meilisearchhelper');
 
         $this->page_helper = Mage::helper('meilisearch_search/entity_pagehelper');
+        $this->blog_helper = Mage::helper('meilisearch_search/entity_bloghelper');
         $this->category_helper = Mage::helper('meilisearch_search/entity_categoryhelper');
         $this->product_helper = Mage::helper('meilisearch_search/entity_producthelper');
         $this->suggestion_helper = Mage::helper('meilisearch_search/entity_suggestionhelper');
@@ -92,6 +96,16 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                 $this->page_helper->getIndexName($storeId),
                 $this->page_helper->getIndexSettings($storeId),
             );
+
+            // Push blog index settings only when the Maho_Blog module is
+            // available - skipping otherwise avoids creating an empty
+            // `<prefix>_blog` index on installs without the blog.
+            if ($this->blog_helper->isBlogModuleEnabled()) {
+                $this->meilisearch_helper->setSettings(
+                    $this->blog_helper->getIndexName($storeId),
+                    $this->blog_helper->getIndexSettings($storeId),
+                );
+            }
             $this->meilisearch_helper->setSettings(
                 $this->suggestion_helper->getIndexName($storeId),
                 $this->suggestion_helper->getIndexSettings($storeId),
@@ -124,7 +138,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
             try {
                 $this->meilisearch_helper->deleteIndex($tmpIndexName);
             } catch (\Exception $e) {
-                // Index might not exist — that's fine
+                // Index might not exist - that's fine
             }
         }
 
@@ -249,6 +263,41 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         } finally {
             // Always unwind emulation so the rest of the PHP process isn't
             // left with frontend translator/flat-catalog settings pinned.
+            $this->stopEmulation($emulationInfo);
+        }
+    }
+
+    public function rebuildStoreBlogIndex($storeId, $postIds = null)
+    {
+        if ($this->config->isEnabledBackend($storeId) === false) {
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
+
+            return;
+        }
+        if (!$this->blog_helper->isBlogModuleEnabled()) {
+            return;
+        }
+
+        $shouldUseTmpIndex = ($postIds === null);
+
+        $emulationInfo = $this->startEmulation($storeId);
+
+        try {
+            $indexName = $this->blog_helper->getIndexName($storeId, $shouldUseTmpIndex);
+
+            $posts = $this->blog_helper->getPosts($storeId, $postIds);
+            foreach (array_chunk($posts, 100) as $chunk) {
+                $this->meilisearch_helper->addObjects($chunk, $indexName);
+            }
+
+            if ($shouldUseTmpIndex === true) {
+                $finalIndexName = $this->blog_helper->getIndexName($storeId);
+
+                $this->meilisearch_helper->waitLastTask();
+                $this->meilisearch_helper->moveIndex($indexName, $finalIndexName);
+                $this->meilisearch_helper->setSettings($finalIndexName, $this->blog_helper->getIndexSettings($storeId));
+            }
+        } finally {
             $this->stopEmulation($emulationInfo);
         }
     }
@@ -421,7 +470,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
 
         $collection = $this->suggestion_helper->getSuggestionCollectionQuery($storeId);
 
-        // Limit to top 50 most popular suggestions — more than enough for autocomplete
+        // Limit to top 50 most popular suggestions - more than enough for autocomplete
         $collection->setOrder('popularity', 'DESC');
         $collection->setOrder('num_results', 'DESC');
         $collection->getSelect()->limit(50);
@@ -429,7 +478,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         $size = $collection->getSize();
 
         if ($size > 0) {
-            // Single page — we capped at 50
+            // Single page - we capped at 50
             $this->rebuildStoreSuggestionIndexPage(
                 $storeId,
                 $collection,
@@ -448,7 +497,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         }
 
         // Ensure all pending addDocuments tasks against the tmp index have
-        // completed before swap — see moveIndex() for why this matters.
+        // completed before swap - see moveIndex() for why this matters.
         $this->meilisearch_helper->waitLastTask();
         $this->meilisearch_helper->moveIndex(
             $this->suggestion_helper->getIndexName($storeId) . '_tmp',
@@ -835,8 +884,8 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         // registered under <frontend><events>. Indexing usually runs from CLI
         // or cron (no area loaded), so those observers never fire inside
         // getFinalPrice() and per-group prices regress to the full price.
-        // Loading the frontend event area here — once per batch, alongside
-        // the other frontend-emulation setup — is idempotent on repeat calls.
+        // Loading the frontend event area here - once per batch, alongside
+        // the other frontend-emulation setup - is idempotent on repeat calls.
         Mage::app()->loadAreaPart(
             Mage_Core_Model_App_Area::AREA_FRONTEND,
             Mage_Core_Model_App_Area::PART_EVENTS,

@@ -162,6 +162,14 @@ class Meilisearch_Search_Model_Observer
         $this->helper->rebuildStorePageIndex($storeId, $pageIds);
     }
 
+    public function rebuildBlogIndex(Varien_Object $event)
+    {
+        $storeId = $event->getStoreId();
+        $postIds = $event->getPostIds();
+
+        $this->helper->rebuildStoreBlogIndex($storeId, $postIds);
+    }
+
     public function rebuildSuggestionIndex(Varien_Object $event)
     {
         $storeId = $event->getStoreId();
@@ -271,8 +279,8 @@ class Meilisearch_Search_Model_Observer
 
     private function loadMeilisearchSearchHandle(Varien_Event_Observer $observer)
     {
-        // isAutoCompleteEnabled() is an alias for isPopupEnabled() — they read
-        // the same DB flag — so checking both is redundant. Keep the OR with
+        // isAutoCompleteEnabled() is an alias for isPopupEnabled() - they read
+        // the same DB flag - so checking both is redundant. Keep the OR with
         // isInstantEnabled() since that is a separate flag.
         if (!$this->config->isPopupEnabled() && !$this->config->isInstantEnabled()) {
             return;
@@ -385,10 +393,10 @@ class Meilisearch_Search_Model_Observer
         // Quoted queries (not useful for suggestions)
         $deleted += $write->delete($table, "query_text LIKE '\"%' OR query_text LIKE '%\"'");
 
-        // Excessively long queries (> 60 chars — real searches are shorter)
+        // Excessively long queries (> 60 chars - real searches are shorter)
         $deleted += $write->delete($table, 'LENGTH(query_text) > 60');
 
-        // Very short queries (1-2 chars — likely typos/bots)
+        // Very short queries (1-2 chars - likely typos/bots)
         $deleted += $write->delete($table, 'LENGTH(query_text) < 3');
 
         // Queries with 0 results and low popularity (dead ends)

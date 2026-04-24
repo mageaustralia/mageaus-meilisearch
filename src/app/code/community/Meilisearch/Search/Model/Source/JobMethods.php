@@ -18,6 +18,8 @@ class Meilisearch_Search_Model_Source_JobMethods
         'rebuildSuggestionIndex' => 'Sugesstion Reindex',
         'rebuildStorePageIndex' => 'Store Page Reindex',
         'rebuildPageIndex' => 'Page Reindex',
+        'rebuildStoreBlogIndex' => 'Store Blog Reindex',
+        'rebuildBlogIndex' => 'Blog Reindex',
     ];
 
     /**
