@@ -682,7 +682,10 @@ class Meilisearch_Search_Helper_Meilisearchhelper extends Mage_Core_Helper_Abstr
     protected function convertSynonyms($synonyms)
     {
         if (empty($synonyms)) {
-            return new \stdClass(); // Return empty object for Meilisearch
+            // meilisearch-php >=1.16 type-hints updateSynonyms($synonyms): array,
+            // so an empty stdClass throws TypeError. Empty array serialises to
+            // [] (vs {}) but Meilisearch accepts both as "no synonyms".
+            return [];
         }
 
         $meilisearchSynonyms = [];
