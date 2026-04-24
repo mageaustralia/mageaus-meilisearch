@@ -338,12 +338,18 @@
     }
 }
 
-/* Highlight Styles */
-em {
+/* Highlight Styles - scoped to the meilisearch widgets so the rule
+   doesn't leak onto the host theme's <em> tags (and inherit display:
+   block from a CSS reset, blowing the highlight up into a full-row
+   yellow box). */
+.meilisearch-instantsearch-container em,
+.meilisearch-autocomplete em {
+    display: inline;
     font-style: normal;
     font-weight: bold;
     background-color: #ffeb3b;
     padding: 0 2px;
+    border-radius: 2px;
 }
 
 /* Infinite Scroll */
