@@ -114,9 +114,14 @@ class Meilisearch_Search_Model_Resource_Fulltext_Collection extends Mage_Catalog
         $sortedIds = array_reverse(array_keys($data));
 
         if (!empty($sortedIds)) {
-            $this->getSelect()->columns([
-                'relevance' => new Maho\Db\Expr("FIND_IN_SET(e.entity_id, '" . implode(',', $sortedIds) . "')"),
-            ]);
+            // FIND_IN_SET is MySQL-only — go through the adapter's portable shim
+            // so this works on SQLite (INSTR-based) and PostgreSQL too.
+            $adapter = $this->getConnection();
+            $relevance = $adapter->getFindInSetExpr(
+                'e.entity_id',
+                $adapter->quote(implode(',', $sortedIds)),
+            );
+            $this->getSelect()->columns(['relevance' => $relevance]);
             $this->getSelect()->where('e.entity_id IN (?)', $sortedIds);
         } else {
             // No results, return empty collection
