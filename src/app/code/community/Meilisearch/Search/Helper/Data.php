@@ -781,7 +781,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
                     $orderItemTable,
                 );
                 $collection->getSelect()->joinLeft(
-                    ['msr_order_agg' => new Zend_Db_Expr($aggregateSql)],
+                    ['msr_order_agg' => new \Maho\Db\Expr($aggregateSql)],
                     'msr_order_agg.product_id = e.entity_id',
                     array_filter([
                         'ordered_qty' => $needsOrdered ? 'msr_order_agg.ordered_qty' : null,

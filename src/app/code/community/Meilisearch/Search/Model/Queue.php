@@ -182,7 +182,7 @@ class Meilisearch_Search_Model_Queue
                         [
                             'pid' => null,
                             'locked_at' => null,
-                            'retries' => new Zend_Db_Expr('retries + 1'),
+                            'retries' => new \Maho\Db\Expr('retries + 1'),
                             'error_log' => $logMessage,
                         ],
                         $this->db->quoteInto('job_id IN (?)', $mergedIds),
@@ -201,9 +201,11 @@ class Meilisearch_Search_Model_Queue
 
     private function archiveFailedJobs($whereClause)
     {
+        // CURRENT_TIMESTAMP is portable across MySQL, PostgreSQL, and SQLite,
+        // unlike NOW(), which SQLite does not provide.
         $this->db->query(
-            "INSERT INTO {$this->archiveTable} (pid, class, method, data, error_log, data_size, created_at) 
-                  SELECT pid, class, method, data, error_log, data_size, NOW()
+            "INSERT INTO {$this->archiveTable} (pid, class, method, data, error_log, data_size, created_at)
+                  SELECT pid, class, method, data, error_log, data_size, CURRENT_TIMESTAMP
                   FROM {$this->table}
                   WHERE " . $whereClause,
         );
@@ -496,9 +498,12 @@ class Meilisearch_Search_Model_Queue
 
     private function unlockStackedJobs()
     {
+        // Compute the cutoff timestamp in PHP and bind it as a parameter rather
+        // than relying on MySQL-only NOW()/INTERVAL syntax that breaks on SQLite.
+        $cutoff = gmdate('Y-m-d H:i:s', time() - self::UNLOCK_STACKED_JOBS_AFTER_MINUTES * 60);
         $this->db->update($this->table, [
             'locked_at' => null,
             'pid' => null,
-        ], 'locked_at < (NOW() - INTERVAL ' . self::UNLOCK_STACKED_JOBS_AFTER_MINUTES . ' MINUTE)');
+        ], $this->db->quoteInto('locked_at < ?', $cutoff));
     }
 }
