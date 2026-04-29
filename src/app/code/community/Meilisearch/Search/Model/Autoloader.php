@@ -16,17 +16,33 @@
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
-// Load Composer autoloader for Meilisearch PHP SDK
-$vendorAutoload = dirname(__FILE__, 6) . '/vendor/autoload.php';
+// If the project's composer autoloader already loaded the SDK there's nothing
+// to do — Maho's bootstrap requires vendor/autoload.php long before this file
+// runs. Cheap class_exists check avoids the brittle path-walk below in the
+// common case (composer-installed module, project-level vendor/).
+if (class_exists(\Meilisearch\Client::class, true)) {
+    return;
+}
 
-if (file_exists($vendorAutoload)) {
-    require_once $vendorAutoload;
-} else {
-    // Fallback to alternative vendor location
-    $alternativeAutoload = dirname(__FILE__, 7) . '/vendor/autoload.php';
-    if (file_exists($alternativeAutoload)) {
-        require_once $alternativeAutoload;
-    } else {
-        throw new Exception('Meilisearch PHP SDK not found. Please install it using: composer require meilisearch/meilisearch-php');
+// Otherwise walk up from this file looking for a vendor/autoload.php. The
+// number of levels depends on where the module ended up:
+//   6 — legacy app/code/community layout (Magento/Maho convention)
+//   7 — same, but project root one extra level up (e.g. /app/app/code/...)
+//   9 — composer-installed in vendor/<vendor>/<pkg>/src/app/code/community/...
+// We scan a generous range so future install layouts don't regress this.
+$base = __FILE__;
+for ($i = 1; $i <= 10; $i++) {
+    $candidate = dirname($base, $i) . '/vendor/autoload.php';
+    if (is_file($candidate)) {
+        require_once $candidate;
+        if (class_exists(\Meilisearch\Client::class, true)) {
+            return;
+        }
     }
 }
+
+throw new RuntimeException(
+    'Meilisearch PHP SDK not found. Searched vendor/autoload.php up to 10 '
+    . 'levels above ' . __FILE__ . '. Run `composer require meilisearch/meilisearch-php` '
+    . 'in your project root.',
+);
