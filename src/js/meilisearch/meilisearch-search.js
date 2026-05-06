@@ -94,6 +94,13 @@
     }
 
     function setupAutocomplete(input) {
+        // Idempotency guard — if this input already has an autocomplete attached
+        // (e.g. from a previous init pass via Turbo navigation, FPC content
+        // injection, or any other re-entry), skip rebinding to avoid stacking
+        // multiple dropdowns on the same input.
+        if (input.dataset.meilisearchAutocompleteAttached === '1') return;
+        input.dataset.meilisearchAutocompleteAttached = '1';
+
         var dropdown = document.createElement('div');
         dropdown.className = 'meilisearch-autocomplete';
         dropdown.style.cssText = 'z-index:99999;display:none';
