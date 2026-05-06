@@ -120,7 +120,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         }
 
         foreach ($this->config->getAutocompleteSections() as $section) {
-            if ($section['name'] === 'products' || $section['name'] === 'categories' || $section['name'] === 'pages' || $section['name'] === 'suggestions') {
+            if (in_array($section['name'], ['products', 'categories', 'pages', 'suggestions', 'amasty_pages'], true)) {
                 continue;
             }
 
@@ -207,7 +207,7 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         $additionnal_sections = $this->config->getAutocompleteSections();
 
         foreach ($additionnal_sections as $section) {
-            if ($section['name'] === 'products' || $section['name'] === 'categories' || $section['name'] === 'pages' || $section['name'] === 'suggestions') {
+            if (in_array($section['name'], ['products', 'categories', 'pages', 'suggestions', 'amasty_pages'], true)) {
                 continue;
             }
 
