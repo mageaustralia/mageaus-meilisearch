@@ -431,8 +431,10 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
             }
 
             try {
-                // Rebuild pages for this store
-                $helper->rebuildStorePageIndex($store->getId());
+                // Rebuild Amasty Shopby pages for this store (NOT CMS pages —
+                // rebuildStorePageIndex iterates cms_page and renders widget
+                // directives, which fatals in CLI on getSessionName()).
+                $helper->rebuildAmastyPagesIndex($store->getId());
             } catch (Exception $e) {
                 $this->logger->log('Error rebuilding Amasty pages for store ' . $store->getId() . ': ' . $e->getMessage());
             }
