@@ -19,6 +19,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
     /**
      * Index management page
      */
+    #[\Maho\Config\Route('/admin/meilisearch_manage/index')]
     public function indexAction()
     {
         $this->_title($this->__('System'))
@@ -33,6 +34,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
     /**
      * Reindex all MeiliSearch indexes
      */
+    #[\Maho\Config\Route('/admin/meilisearch_manage/reindexAll')]
     public function reindexAllAction()
     {
         try {
@@ -68,6 +70,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
     /**
      * Clear all MeiliSearch indexes
      */
+    #[\Maho\Config\Route('/admin/meilisearch_manage/clearIndexes')]
     public function clearIndexesAction()
     {
         try {
@@ -114,6 +117,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
      * Delete a single index via AJAX.
      * The index UID must start with the configured prefix to prevent deleting unrelated indexes.
      */
+    #[\Maho\Config\Route('/admin/meilisearch_manage/deleteIndex')]
     public function deleteIndexAction()
     {
         $indexUid = (string) $this->getRequest()->getParam('index');

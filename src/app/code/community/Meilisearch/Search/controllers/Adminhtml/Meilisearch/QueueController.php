@@ -15,6 +15,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_QueueController extends Mage_Admi
         return Mage::getSingleton('admin/session')->isAllowed('system/meilisearch_search/indexing_queue');
     }
 
+    #[\Maho\Config\Route('/admin/meilisearch_queue/index')]
     public function indexAction()
     {
         /** @var Meilisearch_Search_Helper_Config $config */
@@ -48,6 +49,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_QueueController extends Mage_Admi
         $this->sendResponse($queueInfo);
     }
 
+    #[\Maho\Config\Route('/admin/meilisearch_queue/truncate')]
     public function truncateAction()
     {
         try {

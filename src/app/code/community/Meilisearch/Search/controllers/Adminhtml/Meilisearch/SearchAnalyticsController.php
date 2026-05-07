@@ -2,6 +2,7 @@
 
 class Meilisearch_Search_Adminhtml_Meilisearch_SearchAnalyticsController extends Mage_Adminhtml_Controller_Action
 {
+    #[\Maho\Config\Route('/admin/meilisearch_searchAnalytics/index')]
     public function indexAction()
     {
         $this->_title('Meilisearch')->_title('Search Analytics');

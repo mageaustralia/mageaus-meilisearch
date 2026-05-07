@@ -16,6 +16,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
         return $this;
     }
 
+    #[\Maho\Config\Route('/admin/meilisearch_indexingqueue/index')]
     public function indexAction()
     {
         $this->_title($this->__('System'))
@@ -31,6 +32,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
         $this->renderLayout();
     }
 
+    #[\Maho\Config\Route('/admin/meilisearch_indexingqueue/view')]
     public function viewAction()
     {
         $this->_title($this->__('System'))
@@ -62,6 +64,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
         $this->renderLayout();
     }
 
+    #[\Maho\Config\Route('/admin/meilisearch_indexingqueue/clear')]
     public function clearAction()
     {
         try {
@@ -77,6 +80,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
         $this->_redirect('*/*/');
     }
 
+    #[\Maho\Config\Route('/admin/meilisearch_indexingqueue/reset')]
     public function resetAction()
     {
         try {

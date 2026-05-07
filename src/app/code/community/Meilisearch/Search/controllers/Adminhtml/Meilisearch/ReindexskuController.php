@@ -11,6 +11,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
         return parent::preDispatch();
     }
 
+    #[\Maho\Config\Route('/admin/meilisearch_reindexsku/index')]
     public function indexAction()
     {
         $this->_title($this->__('System'))
@@ -22,6 +23,7 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
         $this->renderLayout();
     }
 
+    #[\Maho\Config\Route('/admin/meilisearch_reindexsku/reindexPost')]
     public function reindexPostAction()
     {
         if ($this->getRequest()->getParam('skus')) {
