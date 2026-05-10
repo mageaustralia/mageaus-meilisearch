@@ -181,28 +181,30 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
         if (is_null(self::$_activeCategories)) {
             self::$_activeCategories = [];
 
-            /** @var Mage_Catalog_Model_Resource_Category $resource */
-            $resource = Mage::getResourceModel('catalog/category');
+            // Load admin (store_id 0) scope plus each configured store via the
+            // canonical category collection. This preserves the legacy
+            // "storeId-entityId" keyed map (with admin-scope fallback rows at
+            // key "0-<id>") without hand-rolling EAV joins.
+            $storeIds = [0];
+            foreach (Mage::app()->getStores(true) as $store) {
+                $storeIds[] = (int) $store->getId();
+            }
+            $storeIds = array_unique($storeIds);
 
-            if ($attribute = $resource->getAttribute('is_active')) {
-                /** @var Mage_Core_Model_Resource $coreResource */
-                $coreResource = Mage::getSingleton('core/resource');
-                $connection = $coreResource->getConnection('core_read');
+            foreach ($storeIds as $storeId) {
+                /** @var Mage_Catalog_Model_Resource_Category_Collection $collection */
+                $collection = Mage::getResourceModel('catalog/category_collection')
+                    ->setStoreId($storeId)
+                    ->addAttributeToSelect(['is_active', 'path']);
 
-                $select = $connection->select()->from(['backend' => $attribute->getBackendTable()], [
-                    'key' => new Maho\Db\Expr("CONCAT(backend.store_id, '-', backend.entity_id)"),
-                    'category.path',
-                    'backend.value',
-                ])->join(
-                    ['category' => $resource->getTable('catalog/category')],
-                    'backend.entity_id = category.entity_id',
-                    [],
-                )
-                                     ->where('backend.entity_type_id = ?', $attribute->getEntityTypeId())
-                                     ->where('backend.attribute_id = ?', $attribute->getAttributeId())
-                                     ->order('backend.store_id')->order('backend.entity_id');
-
-                self::$_activeCategories = $connection->fetchAssoc($select);
+                foreach ($collection as $category) {
+                    $key = $storeId . '-' . $category->getId();
+                    self::$_activeCategories[$key] = [
+                        'key'   => $key,
+                        'path'  => (string) $category->getPath(),
+                        'value' => (int) $category->getIsActive(),
+                    ];
+                }
             }
         }
 
@@ -225,27 +227,27 @@ abstract class Meilisearch_Search_Helper_Entity_Helper extends Mage_Core_Helper_
         if (is_null(self::$_categoryNames)) {
             self::$_categoryNames = [];
 
-            $resource = Mage::getResourceModel('catalog/category');
-            /** @var $resource Mage_Catalog_Model_Resource_Category */
-            if ($attribute = $resource->getAttribute('name')) {
-                /** @var Mage_Core_Model_Resource $coreResource */
-                $coreResource = Mage::getSingleton('core/resource');
-                $connection = $coreResource->getConnection('core_read');
+            // Load admin (store_id 0) scope plus each configured store via the
+            // canonical category collection. Preserves the legacy
+            // "storeId-entityId => name" pair shape, with level > 1 filter so
+            // tree roots are excluded.
+            $storeIds = [0];
+            foreach (Mage::app()->getStores(true) as $store) {
+                $storeIds[] = (int) $store->getId();
+            }
+            $storeIds = array_unique($storeIds);
 
-                $select = $connection->select()->from(
-                    ['backend' => $attribute->getBackendTable()],
-                    [new Maho\Db\Expr("CONCAT(backend.store_id, '-', backend.entity_id)"), 'backend.value'],
-                )
-                                     ->join(
-                                         ['category' => $resource->getTable('catalog/category')],
-                                         'backend.entity_id = category.entity_id',
-                                         [],
-                                     )
-                                     ->where('backend.entity_type_id = ?', $attribute->getEntityTypeId())
-                                     ->where('backend.attribute_id = ?', $attribute->getAttributeId())
-                                     ->where('category.level > ?', 1);
+            foreach ($storeIds as $storeId) {
+                /** @var Mage_Catalog_Model_Resource_Category_Collection $collection */
+                $collection = Mage::getResourceModel('catalog/category_collection')
+                    ->setStoreId($storeId)
+                    ->addAttributeToSelect('name')
+                    ->addFieldToFilter('level', ['gt' => 1]);
 
-                self::$_categoryNames = $connection->fetchPairs($select);
+                foreach ($collection as $category) {
+                    $key = $storeId . '-' . $category->getId();
+                    self::$_categoryNames[$key] = (string) $category->getName();
+                }
             }
         }
 

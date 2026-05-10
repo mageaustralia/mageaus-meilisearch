@@ -91,28 +91,20 @@ class Meilisearch_Search_AjaxController extends Mage_Core_Controller_Front_Actio
                 'position'    => $position,
             ]);
 
-            // Also update catalogsearch_query popularity (upsert)
-            $queryTable = $resource->getTableName('catalogsearch/search_query');
-            $existing = $write->fetchRow(
-                $write->select()->from($queryTable)
-                    ->where('query_text = ?', $query)
-                    ->where('store_id = ?', $storeId)
-                    ->limit(1),
-            );
-            if ($existing) {
-                $write->update($queryTable, [
-                    'popularity' => new Maho\Db\Expr('popularity + 1'),
-                    'updated_at' => Mage::getModel('core/date')->gmtDate(),
-                ], ['query_id = ?' => $existing['query_id']]);
-            } else {
-                $write->insert($queryTable, [
-                    'query_text'  => $query,
-                    'store_id'    => $storeId,
-                    'num_results' => 0,
-                    'popularity'  => 1,
-                    'updated_at'  => Mage::getModel('core/date')->gmtDate(),
-                ]);
+            // Also update catalogsearch_query popularity (upsert via canonical model)
+            /** @var Mage_CatalogSearch_Model_Query $searchQuery */
+            $searchQuery = Mage::getModel('catalogsearch/query');
+            $searchQuery->setStoreId($storeId);
+            $searchQuery->loadByQuery($query);
+            if (!$searchQuery->getId()) {
+                $searchQuery->setQueryText($query)
+                    ->setStoreId($storeId)
+                    ->setNumResults(0)
+                    ->setPopularity(0);
             }
+            $searchQuery->setPopularity((int) $searchQuery->getPopularity() + 1)
+                ->setUpdatedAt(Mage::getModel('core/date')->gmtDate())
+                ->save();
 
             $this->getResponse()
                 ->setHeader('Content-Type', 'application/json')

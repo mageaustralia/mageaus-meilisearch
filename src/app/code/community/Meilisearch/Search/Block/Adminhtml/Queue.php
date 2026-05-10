@@ -73,7 +73,9 @@ class Meilisearch_Search_Block_Adminhtml_Queue extends Mage_Adminhtml_Block_Widg
             $tableName = $resource->getTableName('meilisearch_search/queue');
 
             // Get total count
-            $totalCount = (int) $readConnection->fetchOne("SELECT COUNT(*) FROM {$tableName}");
+            $totalSelect = $readConnection->select()
+                ->from($tableName, [new Maho\Db\Expr('COUNT(*)')]);
+            $totalCount = (int) $readConnection->fetchOne($totalSelect);
 
             $stats = [
                 'total' => $totalCount,
@@ -85,24 +87,29 @@ class Meilisearch_Search_Block_Adminhtml_Queue extends Mage_Adminhtml_Block_Widg
 
             if ($totalCount > 0) {
                 // Get counts by retry status
-                $sql = "SELECT 
-                    CASE 
-                        WHEN retries >= 3 THEN 'failed' 
-                        WHEN retries > 0 THEN 'processing' 
-                        ELSE 'pending' 
-                    END as status,
-                    COUNT(*) as count
-                FROM {$tableName}
-                GROUP BY status";
+                $statusExpr = new Maho\Db\Expr(
+                    "CASE WHEN retries >= 3 THEN 'failed' "
+                    . "WHEN retries > 0 THEN 'processing' "
+                    . "ELSE 'pending' END",
+                );
+                $statusSelect = $readConnection->select()
+                    ->from($tableName, [
+                        'status' => $statusExpr,
+                        'count'  => new Maho\Db\Expr('COUNT(*)'),
+                    ])
+                    ->group('status');
 
-                $results = $readConnection->fetchAll($sql);
+                $results = $readConnection->fetchAll($statusSelect);
                 foreach ($results as $row) {
                     $stats[$row['status']] = (int) $row['count'];
                 }
 
                 // Get oldest item
-                $oldestSql = "SELECT created_at FROM {$tableName} ORDER BY created_at ASC LIMIT 1";
-                $oldest = $readConnection->fetchOne($oldestSql);
+                $oldestSelect = $readConnection->select()
+                    ->from($tableName, ['created_at'])
+                    ->order('created_at ASC')
+                    ->limit(1);
+                $oldest = $readConnection->fetchOne($oldestSelect);
                 if ($oldest) {
                     $stats['oldest'] = $oldest;
                 }

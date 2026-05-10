@@ -1313,7 +1313,12 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
         $read = $resource->getConnection('core_read');
         $table = $resource->getTableName('catalog/category_product');
 
-        // Get direct positions from catalog_category_product
+        // Direct read against catalog/category_product: no canonical resource
+        // wrapper exists for the inverse lookup (one product, many categories).
+        // Mage_Catalog_Model_Resource_Category::getProductsPosition() solves
+        // the opposite shape (one category, many products), so calling it per
+        // category would be N+1. The select below is parameterised via the
+        // adapter, not concatenation.
         $select = $read->select()
             ->from($table, ['category_id', 'position'])
             ->where('product_id = ?', $productId)

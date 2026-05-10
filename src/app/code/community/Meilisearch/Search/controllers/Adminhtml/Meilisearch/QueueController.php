@@ -27,7 +27,9 @@ class Meilisearch_Search_Adminhtml_Meilisearch_QueueController extends Mage_Admi
 
         $readConnection = $resource->getConnection('core_read');
 
-        $size = (int) $readConnection->query('SELECT COUNT(*) as total_count FROM ' . $tableName)->fetchColumn(0);
+        $countSelect = $readConnection->select()
+            ->from($tableName, [new Maho\Db\Expr('COUNT(*)')]);
+        $size = (int) $readConnection->fetchOne($countSelect);
         $maxJobsPerSingleRun = $config->getNumberOfJobToRun();
 
         $etaMinutes = ceil($size / $maxJobsPerSingleRun) * 5; // 5 - assuming the queue runner runs every 5 minutes

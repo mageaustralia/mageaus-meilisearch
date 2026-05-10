@@ -32,7 +32,9 @@ class Meilisearch_Search_Block_Adminhtml_Notifications extends Mage_Adminhtml_Bl
 
         $readConnection = $resource->getConnection('core_read');
 
-        $size = (int) $readConnection->query('SELECT COUNT(*) as total_count FROM ' . $tableName)->fetchColumn(0);
+        $countSelect = $readConnection->select()
+            ->from($tableName, [new Maho\Db\Expr('COUNT(*)')]);
+        $size = (int) $readConnection->fetchOne($countSelect);
         $maxJobsPerSingleRun = $config->getNumberOfJobToRun();
 
         $etaMinutes = $maxJobsPerSingleRun > 0 ? ceil($size / $maxJobsPerSingleRun) * 5 : 0; // 5 - assuming the queue runner runs every 5 minutes
