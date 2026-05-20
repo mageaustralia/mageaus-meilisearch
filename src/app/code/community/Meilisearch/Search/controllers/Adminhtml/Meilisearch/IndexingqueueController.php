@@ -16,6 +16,10 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
         return $this;
     }
 
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_indexingqueue', name: 'msearchtrack.adminhtml_meilisearch_indexingqueue')]
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_indexingqueue/index', name: 'msearchtrack.adminhtml_meilisearch_indexingqueue.index')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_indexingqueue', name: 'meilisearch.adminhtml_meilisearch_indexingqueue')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_indexingqueue/index', name: 'meilisearch.adminhtml_meilisearch_indexingqueue.index')]
     #[\Maho\Config\Route('/admin/meilisearch_indexingqueue/index')]
     public function indexAction()
     {
@@ -32,6 +36,8 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
         $this->renderLayout();
     }
 
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_indexingqueue/view', name: 'msearchtrack.adminhtml_meilisearch_indexingqueue.view')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_indexingqueue/view', name: 'meilisearch.adminhtml_meilisearch_indexingqueue.view')]
     #[\Maho\Config\Route('/admin/meilisearch_indexingqueue/view')]
     public function viewAction()
     {
@@ -64,6 +70,8 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
         $this->renderLayout();
     }
 
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_indexingqueue/clear', name: 'msearchtrack.adminhtml_meilisearch_indexingqueue.clear')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_indexingqueue/clear', name: 'meilisearch.adminhtml_meilisearch_indexingqueue.clear')]
     #[\Maho\Config\Route('/admin/meilisearch_indexingqueue/clear')]
     public function clearAction()
     {
@@ -80,6 +88,8 @@ class Meilisearch_Search_Adminhtml_Meilisearch_IndexingqueueController extends M
         $this->_redirect('*/*/');
     }
 
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_indexingqueue/reset', name: 'msearchtrack.adminhtml_meilisearch_indexingqueue.reset')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_indexingqueue/reset', name: 'meilisearch.adminhtml_meilisearch_indexingqueue.reset')]
     #[\Maho\Config\Route('/admin/meilisearch_indexingqueue/reset')]
     public function resetAction()
     {

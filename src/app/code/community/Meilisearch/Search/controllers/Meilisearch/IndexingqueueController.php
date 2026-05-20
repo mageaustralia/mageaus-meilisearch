@@ -14,6 +14,8 @@ class Meilisearch_Search_Meilisearch_IndexingqueueController extends Mage_Adminh
      *
      * @return Meilisearch_Search_Meilisearch_IndexingqueueController
      */
+    #[\Maho\Config\Route('/msearchtrack/meilisearch_indexingqueue/_init', name: 'msearchtrack.meilisearch_indexingqueue._init')]
+    #[\Maho\Config\Route('/meilisearch/meilisearch_indexingqueue/_init', name: 'meilisearch.meilisearch_indexingqueue._init')]
     protected function _initAction()
     {
         $this->_checkQueueIsActivated();
@@ -49,6 +51,11 @@ class Meilisearch_Search_Meilisearch_IndexingqueueController extends Mage_Adminh
     /**
      * Index action - display the queue grid
      */
+    #[\Maho\Config\Route('/msearchtrack/meilisearch_indexingqueue', name: 'msearchtrack.meilisearch_indexingqueue')]
+    #[\Maho\Config\Route('/msearchtrack/meilisearch_indexingqueue/index', name: 'msearchtrack.meilisearch_indexingqueue.index')]
+    #[\Maho\Config\Route('/meilisearch/meilisearch_indexingqueue', name: 'meilisearch.meilisearch_indexingqueue')]
+    #[\Maho\Config\Route('/meilisearch/meilisearch_indexingqueue/index', name: 'meilisearch.meilisearch_indexingqueue.index')]
+    #[\Maho\Config\Route('/meilisearch/meilisearch_indexingqueue/index')]
     public function indexAction()
     {
         $this->_title($this->__('System'))
@@ -62,6 +69,9 @@ class Meilisearch_Search_Meilisearch_IndexingqueueController extends Mage_Adminh
     /**
      * View action - view a specific queue item
      */
+    #[\Maho\Config\Route('/msearchtrack/meilisearch_indexingqueue/view', name: 'msearchtrack.meilisearch_indexingqueue.view')]
+    #[\Maho\Config\Route('/meilisearch/meilisearch_indexingqueue/view', name: 'meilisearch.meilisearch_indexingqueue.view')]
+    #[\Maho\Config\Route('/meilisearch/meilisearch_indexingqueue/view')]
     public function viewAction()
     {
         $this->_title($this->__('System'))

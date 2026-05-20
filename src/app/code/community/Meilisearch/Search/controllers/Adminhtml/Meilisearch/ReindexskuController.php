@@ -11,6 +11,10 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
         return parent::preDispatch();
     }
 
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_reindexsku', name: 'msearchtrack.adminhtml_meilisearch_reindexsku')]
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_reindexsku/index', name: 'msearchtrack.adminhtml_meilisearch_reindexsku.index')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_reindexsku', name: 'meilisearch.adminhtml_meilisearch_reindexsku')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_reindexsku/index', name: 'meilisearch.adminhtml_meilisearch_reindexsku.index')]
     #[\Maho\Config\Route('/admin/meilisearch_reindexsku/index')]
     public function indexAction()
     {
@@ -23,6 +27,8 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ReindexskuController extends Mage
         $this->renderLayout();
     }
 
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_reindexsku/reindexPost', name: 'msearchtrack.adminhtml_meilisearch_reindexsku.reindexPost')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_reindexsku/reindexPost', name: 'meilisearch.adminhtml_meilisearch_reindexsku.reindexPost')]
     #[\Maho\Config\Route('/admin/meilisearch_reindexsku/reindexPost')]
     public function reindexPostAction()
     {

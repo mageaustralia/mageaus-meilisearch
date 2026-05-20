@@ -19,6 +19,10 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
     /**
      * Index management page
      */
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_manage', name: 'msearchtrack.adminhtml_meilisearch_manage')]
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_manage/index', name: 'msearchtrack.adminhtml_meilisearch_manage.index')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_manage', name: 'meilisearch.adminhtml_meilisearch_manage')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_manage/index', name: 'meilisearch.adminhtml_meilisearch_manage.index')]
     #[\Maho\Config\Route('/admin/meilisearch_manage/index')]
     public function indexAction()
     {
@@ -34,6 +38,8 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
     /**
      * Reindex all MeiliSearch indexes
      */
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_manage/reindexAll', name: 'msearchtrack.adminhtml_meilisearch_manage.reindexAll')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_manage/reindexAll', name: 'meilisearch.adminhtml_meilisearch_manage.reindexAll')]
     #[\Maho\Config\Route('/admin/meilisearch_manage/reindexAll')]
     public function reindexAllAction()
     {
@@ -70,6 +76,8 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
     /**
      * Clear all MeiliSearch indexes
      */
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_manage/clearIndexes', name: 'msearchtrack.adminhtml_meilisearch_manage.clearIndexes')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_manage/clearIndexes', name: 'meilisearch.adminhtml_meilisearch_manage.clearIndexes')]
     #[\Maho\Config\Route('/admin/meilisearch_manage/clearIndexes')]
     public function clearIndexesAction()
     {
@@ -117,6 +125,8 @@ class Meilisearch_Search_Adminhtml_Meilisearch_ManageController extends Mage_Adm
      * Delete a single index via AJAX.
      * The index UID must start with the configured prefix to prevent deleting unrelated indexes.
      */
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_manage/deleteIndex', name: 'msearchtrack.adminhtml_meilisearch_manage.deleteIndex')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_manage/deleteIndex', name: 'meilisearch.adminhtml_meilisearch_manage.deleteIndex')]
     #[\Maho\Config\Route('/admin/meilisearch_manage/deleteIndex')]
     public function deleteIndexAction()
     {

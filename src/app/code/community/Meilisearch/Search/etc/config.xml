@@ -6,22 +6,6 @@
         </Meilisearch_Search>
     </modules>
     <frontend>
-        <routers>
-            <meilisearch>
-                <use>standard</use>
-                <args>
-                    <module>Meilisearch_Search</module>
-                    <frontName>meilisearch</frontName>
-                </args>
-            </meilisearch>
-            <meilisearch_ajax>
-                <use>standard</use>
-                <args>
-                    <module>Meilisearch_Search</module>
-                    <frontName>msearchtrack</frontName>
-                </args>
-            </meilisearch_ajax>
-        </routers>
         <layout>
             <updates>
                 <meilisearch>
@@ -233,9 +217,9 @@
                 <enable_backend>1</enable_backend>
                 <server_url>http://localhost:7700</server_url>
                 <search_results_url>/meilisearch</search_results_url>
-                <application_id></application_id>
-                <search_only_api_key></search_only_api_key>
-                <api_key></api_key>
+                <application_id/>
+                <search_only_api_key/>
+                <api_key/>
                 <debug>0</debug>
                 <index_prefix>maho_</index_prefix>
                 <is_popup_enabled>1</is_popup_enabled>

@@ -2,6 +2,10 @@
 
 class Meilisearch_Search_Adminhtml_Meilisearch_SearchAnalyticsController extends Mage_Adminhtml_Controller_Action
 {
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_searchanalytics', name: 'msearchtrack.adminhtml_meilisearch_searchanalytics')]
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_searchanalytics/index', name: 'msearchtrack.adminhtml_meilisearch_searchanalytics.index')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_searchanalytics', name: 'meilisearch.adminhtml_meilisearch_searchanalytics')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_searchanalytics/index', name: 'meilisearch.adminhtml_meilisearch_searchanalytics.index')]
     #[\Maho\Config\Route('/admin/meilisearch_searchAnalytics/index')]
     public function indexAction()
     {

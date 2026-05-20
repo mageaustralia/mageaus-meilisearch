@@ -15,6 +15,10 @@ class Meilisearch_Search_Adminhtml_Meilisearch_QueueController extends Mage_Admi
         return Mage::getSingleton('admin/session')->isAllowed('system/meilisearch_search/indexing_queue');
     }
 
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_queue', name: 'msearchtrack.adminhtml_meilisearch_queue')]
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_queue/index', name: 'msearchtrack.adminhtml_meilisearch_queue.index')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_queue', name: 'meilisearch.adminhtml_meilisearch_queue')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_queue/index', name: 'meilisearch.adminhtml_meilisearch_queue.index')]
     #[\Maho\Config\Route('/admin/meilisearch_queue/index')]
     public function indexAction()
     {
@@ -51,6 +55,8 @@ class Meilisearch_Search_Adminhtml_Meilisearch_QueueController extends Mage_Admi
         $this->sendResponse($queueInfo);
     }
 
+    #[\Maho\Config\Route('/msearchtrack/adminhtml_meilisearch_queue/truncate', name: 'msearchtrack.adminhtml_meilisearch_queue.truncate')]
+    #[\Maho\Config\Route('/meilisearch/adminhtml_meilisearch_queue/truncate', name: 'meilisearch.adminhtml_meilisearch_queue.truncate')]
     #[\Maho\Config\Route('/admin/meilisearch_queue/truncate')]
     public function truncateAction()
     {

@@ -24,6 +24,8 @@ class Meilisearch_Search_AjaxController extends Mage_Core_Controller_Front_Actio
     /**
      * Get form key for AJAX requests
      */
+    #[\Maho\Config\Route('/msearchtrack/ajax/getformkey', name: 'msearchtrack.ajax.getformkey')]
+    #[\Maho\Config\Route('/meilisearch/ajax/getformkey', name: 'meilisearch.ajax.getformkey')]
     public function getformkeyAction()
     {
         $formKey = Mage::getSingleton('core/session')->getFormKey();
@@ -37,6 +39,8 @@ class Meilisearch_Search_AjaxController extends Mage_Core_Controller_Front_Actio
      * Track search click-through: query + clicked product/category.
      * POST: { query, type, objectID, name, position }
      */
+    #[\Maho\Config\Route('/msearchtrack/ajax/trackclick', name: 'msearchtrack.ajax.trackclick')]
+    #[\Maho\Config\Route('/meilisearch/ajax/trackclick', name: 'meilisearch.ajax.trackclick')]
     public function trackclickAction()
     {
         if (!$this->getRequest()->isPost()) {
