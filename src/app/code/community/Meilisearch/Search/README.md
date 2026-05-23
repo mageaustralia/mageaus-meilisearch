@@ -56,6 +56,7 @@ Then flush cache and run the setup upgrade:
 | Number of products | Max products shown in autocomplete dropdown |
 | Number of categories | Max categories shown |
 | Number of queries | Max suggestion queries shown |
+| Number of blog posts | Max blog posts shown (0 disables; auto-disables when the Maho_Blog module isn't active) |
 | Min query popularity | Minimum search frequency for suggestions to appear |
 | Additional Sections | Extra content sections (CMS pages, etc.) |
 | Excluded Pages | Pages excluded from the search index |
@@ -77,9 +78,14 @@ The extension manages the following Meilisearch indexes per store:
 | `{prefix}{store}_products` | Products (enabled, visible, in-stock per store) |
 | `{prefix}{store}_categories` | Categories with product counts |
 | `{prefix}{store}_pages` | CMS pages |
+| `{prefix}{store}_blog` | Maho_Blog posts (only when the Maho_Blog module is active) |
+| `{prefix}{store}_faqs` | FAQ entries from Mageaustralia_Faq (only when that module is active) |
+| `{prefix}{store}_amasty_pages` | Amasty Shop-by landing pages (only when Amasty_Shopby is active) |
 | `{prefix}{store}_suggestions` | Popular search query suggestions |
 | `{prefix}{store}_barcodes` | Product barcodes/GTINs (for POS/mobile apps) |
 | `{prefix}{store}_additional_sections` | Custom additional content sections |
+
+The blog, FAQ, and Amasty Pages indexes are optional — each soft-depends on its source module and becomes a no-op (no index created) when that module isn't installed.
 
 Each index is scoped per store — products are filtered by store assignment during indexing so indexes contain only the correct products for each store.
 
@@ -100,13 +106,9 @@ Each index is scoped per store — products are filtered by store assignment dur
 
 ### Full Reindex
 
-From the Manage Indexes admin page, or via CLI:
+Trigger a full reindex from the **System → Meilisearch Search → Manage Indexes** admin page. Each entity (products, categories, pages, blog, FAQs, suggestions, etc.) can be rebuilt individually or all at once.
 
-```bash
-./maho meilisearch:reindex
-```
-
-This replaces the existing index contents using a swap approach (builds a temporary index, then swaps) to avoid downtime.
+Reindexing replaces the existing index contents using a swap approach (builds a temporary index, then swaps) to avoid downtime.
 
 ### Queue-Based Incremental Indexing
 
@@ -165,6 +167,10 @@ After a full reindex, the following attributes are configured as filterable in M
 
 If you add new filterable attributes in config, run a full reindex to push the updated `filterableAttributes` settings to Meilisearch.
 
+### Custom Ranking
+
+Attributes configured under **Products → Custom Ranking** are pushed as Meilisearch ranking rules in `attribute:asc|desc` form and automatically registered as `sortableAttributes` (Meilisearch only applies a ranking rule when the attribute is sortable). Run a full reindex after changing custom ranking.
+
 ## Troubleshooting
 
 **`Attribute X is not filterable` errors**
@@ -177,4 +183,4 @@ Check that the product is enabled, visible in search, and in stock. Check the in
 Check that `/msearchtrack/ajax/trackclick` returns 200 in the browser network tab. The `meilisearch_search_clicks` table is created lazily on first successful request.
 
 **Suggestions not appearing**
-The suggestions index is rebuilt nightly. Run `./maho meilisearch:reindex` or trigger a rebuild from the Manage Indexes admin page.
+The suggestions index is rebuilt nightly. You can also trigger a rebuild from the Manage Indexes admin page.
