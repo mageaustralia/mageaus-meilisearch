@@ -26,7 +26,7 @@ class Meilisearch_Search_Command_ReindexCommand extends Command
 {
     protected function configure(): void
     {
-        $this->addArgument('type', InputArgument::OPTIONAL, 'Entity type to reindex (products|categories|pages|all)', 'all')
+        $this->addArgument('type', InputArgument::OPTIONAL, 'Entity type to reindex (products|categories|pages|faqs|blog|all)', 'all')
              ->addOption('store', 's', InputOption::VALUE_OPTIONAL, 'Store ID to reindex (only for products)')
              ->addOption('clear', 'c', InputOption::VALUE_NONE, 'Clear indexes before reindexing');
     }
@@ -75,6 +75,24 @@ class Meilisearch_Search_Command_ReindexCommand extends Command
                     $output->writeln('<info>Pages reindexed successfully</info>');
                     break;
 
+                case 'faqs':
+                    if ($storeId) {
+                        $output->writeln('<comment>Store option is ignored for faqs</comment>');
+                    }
+                    $output->writeln('<info>Reindexing FAQs...</info>');
+                    $engine->rebuildFaqs();
+                    $output->writeln('<info>FAQs reindexed successfully</info>');
+                    break;
+
+                case 'blog':
+                    if ($storeId) {
+                        $output->writeln('<comment>Store option is ignored for blog</comment>');
+                    }
+                    $output->writeln('<info>Reindexing blog posts...</info>');
+                    $engine->rebuildBlog();
+                    $output->writeln('<info>Blog posts reindexed successfully</info>');
+                    break;
+
                 case 'all':
                     $output->writeln('<info>Reindexing all entities' . ($storeId ? " for store ID $storeId" : ' for all stores') . '...</info>');
 
@@ -87,6 +105,12 @@ class Meilisearch_Search_Command_ReindexCommand extends Command
 
                         $output->writeln('<info>Reindexing pages...</info>');
                         $engine->rebuildPages();
+
+                        $output->writeln('<info>Reindexing FAQs...</info>');
+                        $engine->rebuildFaqs();
+
+                        $output->writeln('<info>Reindexing blog posts...</info>');
+                        $engine->rebuildBlog();
                     }
 
                     $output->writeln('<info>All entities reindexed successfully</info>');

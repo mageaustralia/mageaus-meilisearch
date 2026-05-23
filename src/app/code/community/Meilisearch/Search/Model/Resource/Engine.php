@@ -141,6 +141,29 @@ class Meilisearch_Search_Model_Resource_Engine extends Mage_CatalogSearch_Model_
         }
     }
 
+    public function rebuildFaqs($storeId = null, $faqIds = null)
+    {
+        if (!Mage::helper('core')->isModuleEnabled('Mageaustralia_Faq')) {
+            return $this;
+        }
+
+        $storeIds = Meilisearch_Search_Helper_Entity_Helper::getStores($storeId);
+        $faqHelper = Mage::helper('meilisearch_search/entity_faqhelper');
+
+        foreach ($storeIds as $id) {
+            if ($faqHelper->shouldIndexFaqs($id) === true) {
+                $this->addToQueue(
+                    'meilisearch_search/observer',
+                    'rebuildFaqIndex',
+                    ['store_id' => $id, 'faq_ids' => $faqIds],
+                    1,
+                );
+            }
+        }
+
+        return $this;
+    }
+
     public function rebuildAdditionalSections()
     {
         /** @var Mage_Core_Model_Store $store */

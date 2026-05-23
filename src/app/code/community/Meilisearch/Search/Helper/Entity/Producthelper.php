@@ -239,6 +239,7 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
         $customRankings = $this->config->getProductCustomRanking($storeId);
 
         $customRankingAttributes = [];
+        $customRankingSortableAttributes = [];
 
         $facets = $this->config->getFacets($storeId);
 
@@ -273,7 +274,11 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
         }
 
         foreach ($customRankings as $ranking) {
-            $customRankingAttributes[] = $ranking['order'] . '(' . $ranking['attribute'] . ')';
+            // Meilisearch ranking-rule format is "attribute:asc|desc" (Algolia
+            // used "asc(attribute)"). The attribute must also be sortable, so
+            // collect it for sortableAttributes below.
+            $customRankingAttributes[] = $ranking['attribute'] . ':' . $ranking['order'];
+            $customRankingSortableAttributes[] = $ranking['attribute'];
         }
 
         if ($this->config->replaceCategories($storeId) && !in_array('categories', $attributesForFaceting, true)) {
@@ -321,6 +326,9 @@ class Meilisearch_Search_Helper_Entity_Producthelper extends Meilisearch_Search_
         // Format: cat_position_{categoryId}
         $categoryPositionFields = $this->getAllCategoryPositionFields($storeId);
         $sortableAttributes = array_merge($sortableAttributes, $categoryPositionFields);
+
+        // Custom-ranking attributes must be sortable for Meilisearch to apply them.
+        $sortableAttributes = array_merge($sortableAttributes, $customRankingSortableAttributes);
 
         $indexSettings = [
             'searchableAttributes'    => array_values(array_unique($searchableAttributes)),

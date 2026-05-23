@@ -302,6 +302,42 @@ class Meilisearch_Search_Helper_Data extends Mage_Core_Helper_Abstract
         }
     }
 
+    public function rebuildStoreFaqIndex($storeId, $faqIds = null)
+    {
+        if ($this->config->isEnabledBackend($storeId) === false) {
+            $this->logger->log('INDEXING IS DISABLED FOR ' . $this->logger->getStoreName($storeId));
+
+            return;
+        }
+        if (!Mage::helper('core')->isModuleEnabled('Mageaustralia_Faq')) {
+            return;
+        }
+
+        $shouldUseTmpIndex = ($faqIds === null);
+
+        $emulationInfo = $this->startEmulation($storeId);
+
+        try {
+            $faqHelper = Mage::helper('meilisearch_search/entity_faqhelper');
+            $indexName = $faqHelper->getIndexName($storeId, $shouldUseTmpIndex);
+
+            $faqs = $faqHelper->getFaqs($storeId, $faqIds);
+            foreach (array_chunk($faqs, 100) as $chunk) {
+                $this->meilisearch_helper->addObjects($chunk, $indexName);
+            }
+
+            if ($shouldUseTmpIndex === true) {
+                $finalIndexName = $faqHelper->getIndexName($storeId);
+
+                $this->meilisearch_helper->waitLastTask();
+                $this->meilisearch_helper->moveIndex($indexName, $finalIndexName);
+                $this->meilisearch_helper->setSettings($finalIndexName, $faqHelper->getIndexSettings($storeId));
+            }
+        } finally {
+            $this->stopEmulation($emulationInfo);
+        }
+    }
+
     public function rebuildAmastyPagesIndex($storeId, $pageIds = null)
     {
         if ($this->config->isEnabledBackend($storeId) === false) {

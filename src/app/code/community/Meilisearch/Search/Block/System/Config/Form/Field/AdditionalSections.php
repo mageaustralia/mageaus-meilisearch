@@ -16,6 +16,8 @@ class Meilisearch_Search_Block_System_Config_Form_Field_AdditionalSections exten
 
                         $sections = [
                             ['name' => 'pages', 'label' => 'Pages'],
+                            ['name' => 'amasty_pages', 'label' => 'Amasty Pages'],
+                            ['name' => 'faqs', 'label' => 'FAQs'],
                         ];
 
                         /** @var Meilisearch_Search_Helper_Config $config */

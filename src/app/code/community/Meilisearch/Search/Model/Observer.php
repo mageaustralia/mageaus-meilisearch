@@ -170,6 +170,14 @@ class Meilisearch_Search_Model_Observer
         $this->helper->rebuildStoreBlogIndex($storeId, $postIds);
     }
 
+    public function rebuildFaqIndex(Varien_Object $event)
+    {
+        $storeId = $event->getStoreId();
+        $faqIds = $event->getFaqIds();
+
+        $this->helper->rebuildStoreFaqIndex($storeId, $faqIds);
+    }
+
     public function rebuildSuggestionIndex(Varien_Object $event)
     {
         $storeId = $event->getStoreId();

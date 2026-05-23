@@ -185,6 +185,9 @@
                 <meilisearch_search_indexer_blog>
                     <model>meilisearch_search/indexer_meilisearchblog</model>
                 </meilisearch_search_indexer_blog>
+                <meilisearch_search_indexer_faqs>
+                    <model>meilisearch_search/indexer_meilisearchfaqs</model>
+                </meilisearch_search_indexer_faqs>
                 <meilisearch_amasty_pages>
                     <model>meilisearch_search/indexer_meilisearchamastypages</model>
                 </meilisearch_amasty_pages>
@@ -224,7 +227,6 @@
                 <index_prefix>maho_</index_prefix>
                 <is_popup_enabled>1</is_popup_enabled>
                 <is_instant_enabled>1</is_instant_enabled>
-                <use_adaptive_image>0</use_adaptive_image>
             </credentials>
             <products>
                 <number_product_results>12</number_product_results>
@@ -242,13 +244,12 @@
                      hand-built category PLPs to keep working - admins opt
                      in if they want the unified Meili facet/filter UX
                      across both search and category. -->
-                <replace_categories>0</replace_categories>
+                <replace_categories>1</replace_categories>
                 <instant_selector>.main</instant_selector>
                 <facets>a:3:{s:18:"_1432907948596_596";a:5:{s:9:"attribute";s:5:"price";s:4:"type";s:6:"slider";s:5:"label";s:5:"Price";s:10:"searchable";s:1:"2";s:11:"create_rule";s:1:"2";}s:18:"_1432907963376_376";a:5:{s:9:"attribute";s:10:"categories";s:4:"type";s:11:"conjunctive";s:5:"label";s:10:"Categories";s:10:"searchable";s:1:"2";s:11:"create_rule";s:1:"2";}s:17:"_1447846054032_32";a:5:{s:9:"attribute";s:5:"color";s:4:"type";s:11:"disjunctive";s:5:"label";s:6:"Colors";s:10:"searchable";s:1:"1";s:11:"create_rule";s:1:"2";}}</facets>
                 <max_values_per_facet>10</max_values_per_facet>
                 <sorts>a:3:{s:18:"_1432908018844_844";a:3:{s:9:"attribute";s:5:"price";s:4:"sort";s:3:"asc";s:5:"label";s:12:"Lowest price";}s:18:"_1432908022539_539";a:3:{s:9:"attribute";s:5:"price";s:4:"sort";s:4:"desc";s:5:"label";s:13:"Highest price";}s:18:"_1433768597454_454";a:3:{s:9:"attribute";s:10:"created_at";s:4:"sort";s:4:"desc";s:5:"label";s:12:"Newest first";}}</sorts>
                 <add_to_cart_enable>1</add_to_cart_enable>
-                <infinite_scroll_enable>0</infinite_scroll_enable>
             </instant>
             <autocomplete>
                 <nb_of_products_suggestions>6</nb_of_products_suggestions>
@@ -260,7 +261,6 @@
                 <sections>a:1:{s:18:"_1450089283397_397";a:3:{s:4:"name";s:5:"pages";s:5:"label";s:5:"Pages";s:11:"hitsPerPage";s:1:"2";}}</sections>
                 <min_popularity>100</min_popularity>
                 <min_number_of_results>2</min_number_of_results>
-                <display_categories_with_suggestions>1</display_categories_with_suggestions>
                 <render_template_directives>1</render_template_directives>
                 <debug>0</debug>
             </autocomplete>
@@ -300,11 +300,10 @@
                 <make_seo_request>1</make_seo_request>
                 <remove_branding>0</remove_branding>
                 <show_queue_notification>1</show_queue_notification>
-                <!-- Match Maho's default catalogsearch form (#search) and
-                     themes that opt into the Meili-namespaced class. The
-                     bundled JS does querySelectorAll(selector) so any valid
-                     CSS selector list works here. -->
-                <autocomplete_selector>#search, .meilisearch-search-input</autocomplete_selector>
+                <!-- Selector for the search input(s) to attach autocomplete to.
+                     The bundled JS does querySelectorAll(selector) so any valid
+                     CSS selector (or comma-separated list) works here. -->
+                <autocomplete_selector>.meilisearch-search-input</autocomplete_selector>
                 <index_product_on_category_products_update>1</index_product_on_category_products_update>
                 <index_all_category_product_on_category_update>0</index_all_category_product_on_category_update>
                 <prevent_backend_rendering>0</prevent_backend_rendering>

@@ -210,22 +210,6 @@
                                 ]]>
                             </comment>
                         </is_instant_enabled>
-                        <use_adaptive_image translate="label comment">
-                            <label>Replace default image by matching variation</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>90</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>
-                                <![CDATA[
-                                E.g. When a customer searches for a "blue dress", Meilisearch will display the image associated with the blue variation instead of the default picture.
-                                The same happens when a customer refines products by any color.
-                                <br /><br />If a customer searches for "blue dress" and refines by "red" color, Meilisearch will display images for red (refined) color.
-                                ]]>
-                            </comment>
-                        </use_adaptive_image>
                     </fields>
                 </credentials>
                 <autocomplete>
@@ -311,24 +295,6 @@
                                 ]]>
                             </comment>
                         </min_number_of_results>
-                        <display_categories_with_suggestions translate="label comment">
-                            <label>Display categories with suggestions?</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>7</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>
-                                <![CDATA[
-                                If set to Yes, suggestion will be displayed like:<br />
-                                - Suggestion in All departments<br />
-                                - Suggestion in [most popular category<br />
-                                - Suggestion<br /><br />
-                                If set to No, suggestions will be displayed without "All departments" and most popular category.
-                                ]]>
-                            </comment>
-                        </display_categories_with_suggestions>
                         <sections>
                             <label>Additional Sections</label>
                             <frontend_model>meilisearch_search/system_config_form_field_additionalSections</frontend_model>
@@ -479,16 +445,6 @@
                             <show_in_store>1</show_in_store>
                             <comment>Choose here if you want to add an "add to cart" button in the template.</comment>
                         </add_to_cart_enable>
-                        <infinite_scroll_enable translate="label comment">
-                            <label>Enable Infinite Scroll</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>80</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>This will display a show more button to load more results instead of traditional pagination.</comment>
-                        </infinite_scroll_enable>
                     </fields>
                 </instant>
                 <products translate="label">
@@ -1057,7 +1013,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment>CSS selector(s) for the search input(s) to attach autocomplete to. Comma-separated lists are supported. Default `#search, .meilisearch-search-input` matches Maho's stock catalogsearch form AND themes that opt into the Meili-namespaced class.</comment>
+                            <comment>CSS selector(s) for the search input(s) to attach autocomplete to. Comma-separated lists are supported. Default `.meilisearch-search-input`.</comment>
                         </autocomplete_selector>
                         <index_product_on_category_products_update translate="label comment">
                             <label>Update product on category products update</label>
