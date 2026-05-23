@@ -106,7 +106,17 @@ Each index is scoped per store — products are filtered by store assignment dur
 
 ### Full Reindex
 
-Trigger a full reindex from the **System → Meilisearch Search → Manage Indexes** admin page. Each entity (products, categories, pages, blog, FAQs, suggestions, etc.) can be rebuilt individually or all at once.
+From the **System → Meilisearch Search → Manage Indexes** admin page, or via CLI:
+
+```bash
+./maho meilisearch:reindex            # all entities
+./maho meilisearch:reindex products   # one entity
+./maho meilisearch:reindex faqs
+./maho meilisearch:reindex blog
+./maho meilisearch:reindex products --store=1
+```
+
+Valid types: `products`, `categories`, `pages`, `faqs`, `blog`, `suggestions`, `amasty_pages`, `additional_sections`, `all`. The `--store` option applies to products only.
 
 Reindexing replaces the existing index contents using a swap approach (builds a temporary index, then swaps) to avoid downtime.
 

@@ -25,6 +25,11 @@
     "php-http/guzzle7-adapter": "^1.0",
     "guzzlehttp/guzzle": "^7.0"
   },
+  "autoload": {
+    "files": [
+      "lib/MahoCLI/Commands/MeilisearchReindex.php"
+    ]
+  },
   "extra": {
     "magento-root-dir": ".",
     "map": [
