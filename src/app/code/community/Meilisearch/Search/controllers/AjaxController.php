@@ -107,7 +107,7 @@ class Meilisearch_Search_AjaxController extends Mage_Core_Controller_Front_Actio
                     ->setPopularity(0);
             }
             $searchQuery->setPopularity((int) $searchQuery->getPopularity() + 1)
-                ->setUpdatedAt(Mage::getModel('core/date')->gmtDate())
+                ->setUpdatedAt(Mage_Core_Model_Locale::nowUtc())
                 ->save();
 
             $this->getResponse()

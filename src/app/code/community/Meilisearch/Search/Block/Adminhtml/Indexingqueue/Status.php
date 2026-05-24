@@ -11,9 +11,6 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue_Status extends Mage_Admin
     /** @var Meilisearch_Search_Helper_Config */
     protected $config;
 
-    /** @var Mage_Core_Model_Date */
-    protected $dateTime;
-
     /** @var Meilisearch_Search_Model_Queue */
     protected $queue;
 
@@ -28,7 +25,6 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue_Status extends Mage_Admin
     {
         parent::_construct();
         $this->config = Mage::helper('meilisearch_search/config');
-        $this->dateTime = Mage::getModel('core/date');
         $this->queue = Mage::getModel('meilisearch_search/queue');
 
         $this->queueRunnerIndexer = Mage::getModel('index/indexer')
@@ -152,13 +148,18 @@ class Meilisearch_Search_Block_Adminhtml_Indexingqueue_Status extends Mage_Admin
     /** @return int */
     private function getIndexerLastUpdateTimestamp()
     {
-        return $this->dateTime->gmtTimestamp($this->queueRunnerIndexer->getLatestUpdated());
+        $value = $this->queueRunnerIndexer->getLatestUpdated();
+        if (!$value) {
+            return 0;
+        }
+        // Indexer timestamps are stored UTC; parse as UTC to a unix timestamp.
+        return (new \DateTimeImmutable((string) $value, new \DateTimeZone('UTC')))->getTimestamp();
     }
 
     /** @return int */
     private function getTimeSinceLastIndexerUpdate()
     {
-        return $this->dateTime->gmtTimestamp('now') - $this->getIndexerLastUpdateTimestamp();
+        return time() - $this->getIndexerLastUpdateTimestamp();
     }
 
     /**
